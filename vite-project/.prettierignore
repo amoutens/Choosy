@@ -1,0 +1,16 @@
+node_modules
+dist
+.turbo
+.vercel
+coverage
+.cache
+*.min.js
+*.map
+public
+node_modules
+dist
+.vite
+build
+public
+*.min.js
+*.config.*

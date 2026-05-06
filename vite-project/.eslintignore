@@ -1,0 +1,15 @@
+node_modules
+dist
+public
+*.css
+*.png
+*.jpg
+*.svg
+node_modules/
+dist/
+.turbo/
+.vite/
+build/
+public/
+*.config.*
+*.min.*
