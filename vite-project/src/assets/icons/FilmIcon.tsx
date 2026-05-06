@@ -3,7 +3,7 @@ import GroupWorkIcon from '@mui/icons-material/GroupWork';
 const FilmIcon = () => {
   return (
     <div>
-      <GroupWorkIcon />
+      <GroupWorkIcon style={{ color: 'white', fontSize: '60px' }} />
     </div>
   )
 }
