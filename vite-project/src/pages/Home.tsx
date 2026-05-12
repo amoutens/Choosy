@@ -63,7 +63,7 @@ const Home: FC = () => {
           </div>
         </div>
         <Link
-          to="/other"
+          to="/register"
           className="flex items-center justify-center font-[Poppins] font-semibold text-[28px] rounded-2xl"
           style={{ width: '300px', height: '80px', background: 'linear-gradient(to bottom, #CE9FFC, #A582F7, #7367F0)', color: '#ffffff' }}
         >
