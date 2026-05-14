@@ -1,20 +1,10 @@
-import { FC, useState, FormEvent } from 'react'
+import { FC, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout'
+import { FormField } from '../components/ui/FormField'
+import { Button } from '../components/ui/Button'
 import { apiLogin } from '../api/auth'
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  height: '52px',
-  background: 'rgba(255,255,255,0.07)',
-  border: '1px solid rgba(255,255,255,0.2)',
-  borderRadius: '12px',
-  padding: '0 16px',
-  color: '#fff',
-  fontSize: '16px',
-  fontFamily: 'Poppins, sans-serif',
-  outline: 'none',
-}
+import { ROUTES } from '../lib/routes'
 
 const Login: FC = () => {
   const navigate = useNavigate()
@@ -23,14 +13,14 @@ const Login: FC = () => {
   const [error, setError]       = useState('')
   const [loading, setLoading]   = useState(false)
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: { preventDefault(): void }) => {
     e.preventDefault()
     setError('')
     setLoading(true)
     try {
       const data = await apiLogin(email, password)
       localStorage.setItem('token', data.access_token)
-      navigate('/dashboard')
+      navigate(ROUTES.DASHBOARD)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
@@ -48,54 +38,20 @@ const Login: FC = () => {
       </h2>
       <p className="font-[Poppins] text-[14px] mb-8" style={{ color: 'rgba(255,255,255,0.5)' }}>
         Don't have an account?{' '}
-        <Link to="/register" className="underline" style={{ color: '#A582F7' }}>
-          Sign up
-        </Link>
+        <Link to={ROUTES.REGISTER} className="underline" style={{ color: '#A582F7' }}>Sign up</Link>
       </p>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <label className="font-[Poppins] text-[13px]" style={{ color: 'rgba(255,255,255,0.6)' }}>
-            Email
-          </label>
-          <input
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-            style={inputStyle}
-          />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="font-[Poppins] text-[13px]" style={{ color: 'rgba(255,255,255,0.6)' }}>
-            Password
-          </label>
-          <input
-            type="password"
-            placeholder="Your password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-            style={inputStyle}
-          />
-        </div>
+        <FormField label="Email" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required />
+        <FormField label="Password" type="password" placeholder="Your password" value={password} onChange={e => setPassword(e.target.value)} required />
 
         {error && (
-          <p className="font-[Poppins] text-[13px] text-center" style={{ color: '#ff7c7c' }}>
-            {error}
-          </p>
+          <p className="font-[Poppins] text-[13px] text-center" style={{ color: '#ff7c7c' }}>{error}</p>
         )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="mt-2 flex items-center justify-center font-[Poppins] font-semibold text-[18px] rounded-2xl text-white transition-opacity disabled:opacity-60"
-          style={{ height: '56px', background: 'linear-gradient(to bottom, #CE9FFC, #A582F7, #7367F0)' }}
-        >
+        <Button type="submit" size="lg" fullWidth disabled={loading} className="mt-2">
           {loading ? 'Signing in…' : 'Sign In'}
-        </button>
+        </Button>
       </form>
     </AuthLayout>
   )
