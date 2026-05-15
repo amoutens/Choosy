@@ -70,7 +70,7 @@ const Dashboard: FC = () => {
                 type="text"
                 placeholder="Room code"
                 value={joinCode}
-                onChange={e => setJoinCode(e.target.value.toUpperCase())}
+                onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                 maxLength={6}
                 className="w-full text-center font-[Poppins] font-semibold text-[18px] tracking-widest"
                 style={{
@@ -91,7 +91,7 @@ const Dashboard: FC = () => {
       </div>
 
       {showCreate && <CreateRoomModal code={createdCode} onClose={() => setShowCreate(false)} />}
-      {showJoin   && <JoinRoomModal   code={joinCode}    onClose={() => setShowJoin(false)} />}
+      {showJoin && <JoinRoomModal code={joinCode} onClose={() => setShowJoin(false)} />}
     </PageBackground>
   )
 }

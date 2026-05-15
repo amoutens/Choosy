@@ -5,7 +5,11 @@ export interface AuthResponse {
   user: { id: string; email: string; name?: string }
 }
 
-export async function apiRegister(email: string, password: string, name?: string): Promise<AuthResponse> {
+export async function apiRegister(
+  email: string,
+  password: string,
+  name?: string
+): Promise<AuthResponse> {
   const res = await fetch(`${API}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

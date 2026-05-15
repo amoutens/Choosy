@@ -11,7 +11,14 @@ interface RoomCardProps {
   actionLabel?: string
 }
 
-export const RoomCard: FC<RoomCardProps> = ({ icon, title, description, children, onAction, actionLabel }) => (
+export const RoomCard: FC<RoomCardProps> = ({
+  icon,
+  title,
+  description,
+  children,
+  onAction,
+  actionLabel,
+}) => (
   <GlassCard className="flex flex-col items-center gap-5 w-72">
     <div
       className="w-16 h-16 rounded-2xl flex items-center justify-center"
@@ -25,11 +32,15 @@ export const RoomCard: FC<RoomCardProps> = ({ icon, title, description, children
 
     <div className="text-center">
       <h2 className="font-['Abril_Fatface'] text-[26px] text-white leading-none mb-2">{title}</h2>
-      <p className="font-[Poppins] text-[13px]" style={{ color: 'rgba(255,255,255,0.5)' }}>{description}</p>
+      <p className="font-[Poppins] text-[13px]" style={{ color: 'rgba(255,255,255,0.5)' }}>
+        {description}
+      </p>
     </div>
 
     {children ?? (
-      <Button fullWidth onClick={onAction}>{actionLabel}</Button>
+      <Button fullWidth onClick={onAction}>
+        {actionLabel}
+      </Button>
     )}
   </GlassCard>
 )

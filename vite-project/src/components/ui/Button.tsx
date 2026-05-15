@@ -10,8 +10,12 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<string, React.CSSProperties> = {
   gradient: { background: 'linear-gradient(to bottom, #CE9FFC, #A582F7, #7367F0)' },
-  ghost:    { background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' },
-  danger:   { background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', color: '#ff7c7c' },
+  ghost: { background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' },
+  danger: {
+    background: 'rgba(255,255,255,0.07)',
+    border: '1px solid rgba(255,255,255,0.12)',
+    color: '#ff7c7c',
+  },
 }
 
 const sizeStyles: Record<string, { height: string; fontSize: string }> = {
@@ -33,7 +37,7 @@ export const Button: FC<ButtonProps> = ({
     className={cn(
       'flex items-center justify-center font-[Poppins] font-semibold rounded-2xl text-white transition-opacity disabled:opacity-60',
       fullWidth && 'w-full',
-      className,
+      className
     )}
     style={{ ...sizeStyles[size], ...variantStyles[variant], ...style }}
     {...props}

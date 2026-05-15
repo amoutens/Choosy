@@ -2,7 +2,7 @@ import React from 'react'
 
 const ChoosyIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => {
   return (
-    <div className='flex gap-[3px]'>
+    <div className="flex gap-[3px]">
       <svg
         width="59"
         height="82"

@@ -12,8 +12,8 @@ const Profile: FC = () => {
   const user = useRequireAuth()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [avatarSrc, setAvatarSrc]   = useState<string | null>(null)
-  const [preview, setPreview]       = useState<string | null>(null)
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(null)
+  const [preview, setPreview] = useState<string | null>(null)
 
   useEffect(() => {
     if (user) setAvatarSrc(getAvatar(user.sub))
@@ -52,13 +52,23 @@ const Profile: FC = () => {
           onClick={() => fileInputRef.current?.click()}
         >
           <Avatar email={user.email} src={displaySrc} size="lg" />
-          <div className="absolute inset-0 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          <div
+            className="absolute inset-0 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
             style={{ background: 'rgba(0,0,0,0.5)' }}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
           </div>
         </div>
@@ -117,9 +127,14 @@ const Profile: FC = () => {
       <div className="flex flex-col gap-3 mb-8">
         <div
           className="rounded-2xl px-4 py-4"
-          style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
+          style={{
+            background: 'rgba(255,255,255,0.07)',
+            border: '1px solid rgba(255,255,255,0.12)',
+          }}
         >
-          <p className="font-[Poppins] text-[11px] mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Email</p>
+          <p className="font-[Poppins] text-[11px] mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            Email
+          </p>
           <p className="font-[Poppins] text-[15px] text-white">{user.email}</p>
         </div>
       </div>
@@ -128,7 +143,10 @@ const Profile: FC = () => {
         <Link
           to={ROUTES.DASHBOARD}
           className="flex items-center justify-center font-[Poppins] font-semibold text-[16px] rounded-2xl text-white"
-          style={{ height: '50px', background: 'linear-gradient(to bottom, #CE9FFC, #A582F7, #7367F0)' }}
+          style={{
+            height: '50px',
+            background: 'linear-gradient(to bottom, #CE9FFC, #A582F7, #7367F0)',
+          }}
         >
           Back to Dashboard
         </Link>

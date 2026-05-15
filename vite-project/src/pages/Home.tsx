@@ -16,7 +16,9 @@ const Home: FC = () => (
           Don't Argue
         </h1>
         <h2 className="font-['Abhaya_Libre'] font-extrabold text-[128px] text-white flex justify-center items-center leading-none mt-[-20px]">
-          Ch<ChoosyIcon />sy It
+          Ch
+          <ChoosyIcon />
+          sy It
         </h2>
       </div>
     </div>
@@ -33,7 +35,11 @@ const Home: FC = () => (
       <Link
         to={ROUTES.REGISTER}
         className="flex items-center justify-center font-[Poppins] font-semibold text-[28px] rounded-2xl text-white"
-        style={{ width: '300px', height: '80px', background: 'linear-gradient(to bottom, #CE9FFC, #A582F7, #7367F0)' }}
+        style={{
+          width: '300px',
+          height: '80px',
+          background: 'linear-gradient(to bottom, #CE9FFC, #A582F7, #7367F0)',
+        }}
       >
         Get Started
       </Link>

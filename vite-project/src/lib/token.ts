@@ -21,9 +21,15 @@ export function useRequireAuth(): TokenPayload | null {
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    if (!token) { navigate(ROUTES.LOGIN); return }
+    if (!token) {
+      navigate(ROUTES.LOGIN)
+      return
+    }
     const payload = decodeToken(token)
-    if (!payload) { navigate(ROUTES.LOGIN); return }
+    if (!payload) {
+      navigate(ROUTES.LOGIN)
+      return
+    }
     setUser(payload)
   }, [navigate])
 

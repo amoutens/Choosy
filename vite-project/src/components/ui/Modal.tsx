@@ -9,7 +9,9 @@ export const Modal: FC<ModalProps> = ({ children, onClose }) => (
   <div
     className="fixed inset-0 z-50 flex items-center justify-center p-6"
     style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
-    onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    onClick={(e) => {
+      if (e.target === e.currentTarget) onClose()
+    }}
   >
     <div
       className="w-full max-w-sm rounded-3xl p-8 flex flex-col items-center gap-6"

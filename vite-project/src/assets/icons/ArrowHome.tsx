@@ -1,7 +1,13 @@
 ﻿import { FC } from 'react'
 
 const ArrowHome: FC = () => (
-  <svg width="110" height="103" viewBox="0 0 200 186" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg
+    width="110"
+    height="103"
+    viewBox="0 0 200 186"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
     <path
       fillRule="evenodd"
       clipRule="evenodd"
@@ -15,7 +21,14 @@ const ArrowHome: FC = () => (
       fill="white"
     />
     <defs>
-      <linearGradient id="paint0_linear_4101_982" x1="99.8764" y1="0" x2="99.8764" y2="179.296" gradientUnits="userSpaceOnUse">
+      <linearGradient
+        id="paint0_linear_4101_982"
+        x1="99.8764"
+        y1="0"
+        x2="99.8764"
+        y2="179.296"
+        gradientUnits="userSpaceOnUse"
+      >
         <stop stopColor="#7367F0" />
         <stop offset="0.798077" stopColor="white" />
       </linearGradient>

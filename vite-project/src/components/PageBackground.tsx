@@ -13,7 +13,13 @@ export const PageBackground: FC<PageBackgroundProps> = ({ children, className = 
     <div className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none">
       <div
         className="absolute rounded-[50%]"
-        style={{ width: '800px', height: '300px', background: '#9378F4', opacity: 0.76, filter: 'blur(90px)' }}
+        style={{
+          width: '800px',
+          height: '300px',
+          background: '#9378F4',
+          opacity: 0.76,
+          filter: 'blur(90px)',
+        }}
       />
     </div>
 
