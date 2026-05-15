@@ -1,12 +1,14 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;700;800&display=swap');
 
 /* Ensure a true black page background in case utilities aren't applied */
-html, body, #root {
-	height: 100%;
+html,
+body,
+#root {
+  height: 100%;
 }
 
 body {
-	background-color: #000000;
+  background-color: #000000;
 }

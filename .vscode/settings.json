@@ -1,0 +1,28 @@
+{
+  "jest.projects": [
+    {
+      "rootPath": "vite-project",
+      "jestCommandLine": "./node_modules/.bin/jest --config jest.config.cjs"
+    },
+    {
+      "rootPath": "backend",
+      "jestCommandLine": "./node_modules/.bin/jest"
+    }
+  ],
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}
