@@ -64,7 +64,10 @@ describe('UsersService', () => {
       repo.create.mockReturnValue(mockUser);
       repo.save.mockResolvedValue(mockUser);
 
-      const result = await service.create({ email: 'test@example.com', password: '123456' });
+      const result = await service.create({
+        email: 'test@example.com',
+        password: '123456',
+      });
 
       expect(result).not.toHaveProperty('password');
       expect(result.email).toBe(mockUser.email);
@@ -89,7 +92,9 @@ describe('UsersService', () => {
     it('throws NotFoundException if user does not exist', async () => {
       repo.findOne.mockResolvedValue(null);
 
-      await expect(service.findById('nonexistent-id')).rejects.toThrow(NotFoundException);
+      await expect(service.findById('nonexistent-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('returns user without password', async () => {
