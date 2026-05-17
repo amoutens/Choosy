@@ -11,6 +11,7 @@ const mockUser: User = {
   email: 'test@example.com',
   password: 'hashed_password',
   name: 'Test User',
+  avatar: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
