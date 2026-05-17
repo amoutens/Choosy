@@ -25,6 +25,15 @@ export class UsersController {
     return this.usersService.findById(req.user.id);
   }
 
+  @Patch('me')
+  async updateProfile(
+    @Request() req: { user: JwtUser },
+    @Body('name') name: string,
+  ) {
+    await this.usersService.updateName(req.user.id, name);
+    return { success: true };
+  }
+
   @Patch('me/avatar')
   async updateAvatar(
     @Request() req: { user: JwtUser },

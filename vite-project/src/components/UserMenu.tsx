@@ -14,11 +14,15 @@ interface UserMenuProps {
 export const UserMenu: FC<UserMenuProps> = ({ email, userId, onLogout }) => {
   const [open, setOpen] = useState(false)
   const [avatarSrc, setAvatarSrc] = useState<string | null>(null)
+  const [displayName, setDisplayName] = useState<string>('')
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     fetchMyProfile()
-      .then((p) => setAvatarSrc(p.avatar))
+      .then((p) => {
+        setAvatarSrc(p.avatar)
+        setDisplayName(p.name ?? '')
+      })
       .catch(() => {})
   }, [userId])
 
@@ -46,7 +50,7 @@ export const UserMenu: FC<UserMenuProps> = ({ email, userId, onLogout }) => {
             whiteSpace: 'nowrap',
           }}
         >
-          {email}
+          {displayName || email}
         </span>
         <svg
           width="12"

@@ -7,11 +7,13 @@ import { RoomsService } from './rooms.service';
 import { RoomsController } from './rooms.controller';
 import { RoomsGateway } from './rooms.gateway';
 import { MoviesModule } from '../movies/movies.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Room, RoomParticipant, RoomVote]),
     MoviesModule,
+    UsersModule,
   ],
   controllers: [RoomsController],
   providers: [RoomsService, RoomsGateway],

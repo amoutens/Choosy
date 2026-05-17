@@ -3,6 +3,8 @@ import { Movie, MovieFilters } from '../movies/movies.types';
 export interface ParticipantInfo {
   userId: string;
   userEmail: string;
+  name: string | null;
+  avatar: string | null;
   hasFinished: boolean;
 }
 

@@ -4,8 +4,8 @@ import AuthLayout from '../components/AuthLayout'
 import { Avatar } from '../components/ui/Avatar'
 import { Button } from '../components/ui/Button'
 import { useRequireAuth, logout } from '../lib/token'
-import { readFileAsDataUrl } from '../lib/avatarStorage'
-import { fetchMyProfile, uploadAvatar, deleteAvatar } from '../api/users'
+import { compressImage } from '../lib/avatarStorage'
+import { fetchMyProfile, uploadAvatar, deleteAvatar, updateName } from '../api/users'
 import { ROUTES } from '../lib/routes'
 
 const Profile: FC = () => {
@@ -18,17 +18,24 @@ const Profile: FC = () => {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+  const [name, setName] = useState<string>('')
+  const [editingName, setEditingName] = useState(false)
+  const [nameInput, setNameInput] = useState('')
+
   useEffect(() => {
     if (!user) return
     fetchMyProfile()
-      .then((p) => setAvatarSrc(p.avatar))
+      .then((p) => {
+        setAvatarSrc(p.avatar)
+        setName(p.name ?? '')
+      })
       .catch(() => {})
   }, [user])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    const dataUrl = await readFileAsDataUrl(file)
+    const dataUrl = await compressImage(file)
     setPreview(dataUrl)
     setError('')
   }
@@ -60,6 +67,18 @@ const Profile: FC = () => {
       setAvatarSrc(null)
       setPreview(null)
     }, 'Failed to remove. Try again.')
+
+  const handleNameEdit = () => {
+    setNameInput(name)
+    setEditingName(true)
+  }
+
+  const handleNameSave = () =>
+    withSaving(async () => {
+      await updateName(nameInput.trim())
+      setName(nameInput.trim())
+      setEditingName(false)
+    }, 'Failed to save name. Try again.')
 
   if (!user) return null
 
@@ -158,6 +177,64 @@ const Profile: FC = () => {
       </h2>
 
       <div className="flex flex-col gap-3 mb-8">
+        <div
+          className="rounded-2xl px-4 py-4"
+          style={{
+            background: 'rgba(255,255,255,0.07)',
+            border: '1px solid rgba(255,255,255,0.12)',
+          }}
+        >
+          <div className="flex items-center justify-between mb-1">
+            <p className="font-[Poppins] text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+              Name
+            </p>
+            {!editingName && (
+              <button
+                onClick={handleNameEdit}
+                className="font-[Poppins] text-[11px] hover:opacity-70 transition-opacity"
+                style={{ color: '#CE9FFC' }}
+              >
+                Edit
+              </button>
+            )}
+          </div>
+          {editingName ? (
+            <div className="flex gap-2 items-center">
+              <input
+                autoFocus
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleNameSave()}
+                className="flex-1 font-[Poppins] text-[15px] text-white bg-transparent border-b outline-none"
+                style={{ borderColor: 'rgba(206,159,252,0.5)' }}
+              />
+              <button
+                onClick={handleNameSave}
+                disabled={saving}
+                className="font-[Poppins] text-[12px] px-3 py-1 rounded-xl disabled:opacity-50"
+                style={{
+                  background: 'linear-gradient(to bottom, #CE9FFC, #7367F0)',
+                  color: '#fff',
+                }}
+              >
+                Save
+              </button>
+              <button
+                onClick={() => setEditingName(false)}
+                disabled={saving}
+                className="font-[Poppins] text-[12px] px-3 py-1 rounded-xl disabled:opacity-50"
+                style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <p className="font-[Poppins] text-[15px] text-white">
+              {name || <span style={{ color: 'rgba(255,255,255,0.3)' }}>Not set</span>}
+            </p>
+          )}
+        </div>
+
         <div
           className="rounded-2xl px-4 py-4"
           style={{

@@ -381,13 +381,23 @@ const LobbyView: FC<LobbyViewProps> = ({
         {roomState.participants.map((p) => (
           <div key={p.userId} className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div
-                className="w-7 h-7 rounded-full flex items-center justify-center font-[Poppins] font-semibold text-[11px]"
-                style={{ background: 'linear-gradient(to bottom, #CE9FFC, #7367F0)' }}
-              >
-                {p.userEmail.charAt(0).toUpperCase()}
-              </div>
-              <span className="font-[Poppins] text-[13px] text-white">{p.userEmail}</span>
+              {p.avatar ? (
+                <img
+                  src={p.avatar}
+                  alt=""
+                  className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+                />
+              ) : (
+                <div
+                  className="w-7 h-7 rounded-full flex items-center justify-center font-[Poppins] font-semibold text-[11px] flex-shrink-0"
+                  style={{ background: 'linear-gradient(to bottom, #CE9FFC, #7367F0)' }}
+                >
+                  {(p.name || p.userEmail).charAt(0).toUpperCase()}
+                </div>
+              )}
+              <span className="font-[Poppins] text-[13px] text-white">
+                {p.name || p.userEmail}
+              </span>
             </div>
             {p.userId === roomState.hostId && (
               <span

@@ -3,6 +3,8 @@ import { Movie, MovieFilters } from './movies.types'
 export interface Participant {
   userId: string
   userEmail: string
+  name: string | null
+  avatar: string | null
   hasFinished: boolean
 }
 

@@ -10,6 +10,7 @@ import { Room } from './room.entity';
 import { RoomParticipant } from './room-participant.entity';
 import { RoomVote } from './room-vote.entity';
 import { MoviesService } from '../movies/movies.service';
+import { UsersService } from '../users/users.service';
 import { Movie, MovieFilters } from '../movies/movies.types';
 import { RoomState, RoomResults } from './rooms.types';
 import { RoomsGateway } from './rooms.gateway';
@@ -24,6 +25,7 @@ export class RoomsService {
     @InjectRepository(RoomVote)
     private readonly voteRepo: Repository<RoomVote>,
     private readonly moviesService: MoviesService,
+    private readonly usersService: UsersService,
     private readonly gateway: RoomsGateway,
   ) {}
 
@@ -48,6 +50,10 @@ export class RoomsService {
       where: { roomId: room.id },
     });
 
+    const userMap = await this.usersService.findByIds(
+      participants.map((p) => p.userId),
+    );
+
     return {
       id: room.id,
       code: room.code,
@@ -58,6 +64,8 @@ export class RoomsService {
       participants: participants.map((p) => ({
         userId: p.userId,
         userEmail: p.userEmail,
+        name: userMap.get(p.userId)?.name ?? null,
+        avatar: userMap.get(p.userId)?.avatar ?? null,
         hasFinished: p.hasFinished,
       })),
       createdAt: room.createdAt,
