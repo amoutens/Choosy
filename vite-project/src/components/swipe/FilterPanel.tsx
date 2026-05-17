@@ -90,6 +90,7 @@ interface FilterPanelProps {
   onSetMaxRating: (v: string) => void
   onStartSwiping: () => void
   onResetFilters: () => void
+  startLabel?: string
 }
 
 export const FilterPanel: FC<FilterPanelProps> = ({
@@ -108,6 +109,7 @@ export const FilterPanel: FC<FilterPanelProps> = ({
   onSetMaxRating,
   onStartSwiping,
   onResetFilters,
+  startLabel,
 }) => {
   const hasFilters =
     selectedTypes.length > 0 ||
@@ -184,7 +186,7 @@ export const FilterPanel: FC<FilterPanelProps> = ({
           onClick={onStartSwiping}
           style={{ paddingLeft: 28, paddingRight: 28 }}
         >
-          {isLoading ? 'Loading…' : 'Start Swiping →'}
+          {isLoading ? 'Loading…' : (startLabel ?? 'Start Swiping →')}
         </Button>
       </div>
 
