@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Avatar } from './ui/Avatar'
 import { cn } from '../lib/utils'
 import { ROUTES } from '../lib/routes'
-import { getAvatar } from '../lib/avatarStorage'
+import { fetchMyProfile } from '../api/users'
 
 interface UserMenuProps {
   email: string
@@ -17,7 +17,9 @@ export const UserMenu: FC<UserMenuProps> = ({ email, userId, onLogout }) => {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    setAvatarSrc(getAvatar(userId))
+    fetchMyProfile()
+      .then((p) => setAvatarSrc(p.avatar))
+      .catch(() => {})
   }, [userId])
 
   useEffect(() => {

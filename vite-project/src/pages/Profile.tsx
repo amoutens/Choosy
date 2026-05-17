@@ -4,7 +4,8 @@ import AuthLayout from '../components/AuthLayout'
 import { Avatar } from '../components/ui/Avatar'
 import { Button } from '../components/ui/Button'
 import { useRequireAuth, logout } from '../lib/token'
-import { getAvatar, saveAvatar, removeAvatar, readFileAsDataUrl } from '../lib/avatarStorage'
+import { readFileAsDataUrl } from '../lib/avatarStorage'
+import { fetchMyProfile, uploadAvatar, deleteAvatar } from '../api/users'
 import { ROUTES } from '../lib/routes'
 
 const Profile: FC = () => {
@@ -14,9 +15,14 @@ const Profile: FC = () => {
 
   const [avatarSrc, setAvatarSrc] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    if (user) setAvatarSrc(getAvatar(user.sub))
+    if (!user) return
+    fetchMyProfile()
+      .then((p) => setAvatarSrc(p.avatar))
+      .catch(() => {})
   }, [user])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,21 +30,36 @@ const Profile: FC = () => {
     if (!file) return
     const dataUrl = await readFileAsDataUrl(file)
     setPreview(dataUrl)
+    setError('')
+  }
+
+  const withSaving = async (fn: () => Promise<void>, errMsg: string) => {
+    setSaving(true)
+    setError('')
+    try {
+      await fn()
+    } catch {
+      setError(errMsg)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleSave = () => {
-    if (!user || !preview) return
-    saveAvatar(user.sub, preview)
-    setAvatarSrc(preview)
-    setPreview(null)
+    if (!preview) return
+    withSaving(async () => {
+      await uploadAvatar(preview)
+      setAvatarSrc(preview)
+      setPreview(null)
+    }, 'Failed to save. Try again.')
   }
 
-  const handleRemove = () => {
-    if (!user) return
-    removeAvatar(user.sub)
-    setAvatarSrc(null)
-    setPreview(null)
-  }
+  const handleRemove = () =>
+    withSaving(async () => {
+      await deleteAvatar()
+      setAvatarSrc(null)
+      setPreview(null)
+    }, 'Failed to remove. Try again.')
 
   if (!user) return null
 
@@ -85,14 +106,19 @@ const Profile: FC = () => {
           <div className="flex gap-2">
             <button
               onClick={handleSave}
-              className="font-[Poppins] text-[13px] px-4 py-1.5 rounded-xl text-white"
+              disabled={saving}
+              className="font-[Poppins] text-[13px] px-4 py-1.5 rounded-xl text-white disabled:opacity-50"
               style={{ background: 'linear-gradient(to bottom, #CE9FFC, #7367F0)' }}
             >
-              Save
+              {saving ? 'Saving…' : 'Save'}
             </button>
             <button
-              onClick={() => setPreview(null)}
-              className="font-[Poppins] text-[13px] px-4 py-1.5 rounded-xl"
+              onClick={() => {
+                setPreview(null)
+                setError('')
+              }}
+              disabled={saving}
+              className="font-[Poppins] text-[13px] px-4 py-1.5 rounded-xl disabled:opacity-50"
               style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}
             >
               Cancel
@@ -101,14 +127,21 @@ const Profile: FC = () => {
         ) : avatarSrc ? (
           <button
             onClick={handleRemove}
-            className="font-[Poppins] text-[12px]"
+            disabled={saving}
+            className="font-[Poppins] text-[12px] disabled:opacity-50"
             style={{ color: '#ff7c7c' }}
           >
-            Remove photo
+            {saving ? 'Removing…' : 'Remove photo'}
           </button>
         ) : (
           <p className="font-[Poppins] text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
             Click to upload photo
+          </p>
+        )}
+
+        {error && (
+          <p className="font-[Poppins] text-[12px]" style={{ color: '#ff7c7c' }}>
+            {error}
           </p>
         )}
 

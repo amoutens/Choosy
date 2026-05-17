@@ -39,4 +39,12 @@ export class UsersService {
     const { password: _, ...result } = user;
     return result;
   }
+
+  async updateAvatar(id: string, avatar: string): Promise<void> {
+    await this.usersRepo.update({ id }, { avatar });
+  }
+
+  async clearAvatar(id: string): Promise<void> {
+    await this.usersRepo.update({ id }, { avatar: null });
+  }
 }

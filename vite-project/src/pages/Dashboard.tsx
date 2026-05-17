@@ -10,6 +10,7 @@ import { Button } from '../components/ui/Button'
 import FilmIcon from '../assets/icons/FilmIcon'
 import FilmIconSecondary from '../assets/icons/FilmIconSecondary'
 import { useRequireAuth, logout } from '../lib/token'
+import { ROUTES } from '../lib/routes'
 
 function generateRoomCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase()
@@ -50,6 +51,15 @@ const Dashboard: FC = () => {
             Pick Your Movie
           </h1>
         </div>
+
+        <Button
+          variant="ghost"
+          size="lg"
+          onClick={() => navigate(ROUTES.SWIPE)}
+          style={{ paddingLeft: 32, paddingRight: 32, gap: 10 }}
+        >
+          <span style={{ fontSize: 20 }}>🎬</span> Solo Swipe
+        </Button>
 
         <div className="flex flex-col sm:flex-row gap-6">
           <RoomCard
