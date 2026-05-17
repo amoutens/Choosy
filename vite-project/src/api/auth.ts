@@ -1,4 +1,4 @@
-const API = 'http://localhost:4000/api'
+import { API_BASE as API } from '../lib/constants'
 
 export interface AuthResponse {
   access_token: string

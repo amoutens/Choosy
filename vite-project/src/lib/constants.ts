@@ -1,5 +1,7 @@
+export const API_BASE = 'http://localhost:4000/api'
+
 export const BG_ICONS: { type: 'reel' | 'strip'; style: React.CSSProperties }[] = [
-  { type: 'reel', style: { top: '5%', left: '5%' } },
+  { type: 'reel', style: { top: '15%', left: '5%' } },
   { type: 'strip', style: { top: '10%', left: '20%', transform: 'rotate(30deg)' } },
   { type: 'reel', style: { top: '8%', left: '40%' } },
   { type: 'strip', style: { top: '7%', left: '60%', transform: 'rotate(-20deg)' } },

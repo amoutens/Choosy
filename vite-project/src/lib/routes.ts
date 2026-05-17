@@ -4,5 +4,6 @@ export const ROUTES = {
   REGISTER: '/register',
   DASHBOARD: '/dashboard',
   PROFILE: '/profile',
+  SWIPE: '/swipe',
   ROOM: (code: string) => `/room/${code}`,
 } as const

@@ -9,6 +9,7 @@
       "jestCommandLine": "./node_modules/.bin/jest"
     }
   ],
+  "cSpell.words": ["imdb", "choosy", "choosyn"],
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"

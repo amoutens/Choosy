@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
+import Swipe from './pages/Swipe'
 import Other from './pages/Other'
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
         <Route path={ROUTES.REGISTER} element={<Register />} />
         <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
         <Route path={ROUTES.PROFILE} element={<Profile />} />
+        <Route path={ROUTES.SWIPE} element={<Swipe />} />
         <Route path="/other" element={<Other />} />
       </Routes>
     </div>
