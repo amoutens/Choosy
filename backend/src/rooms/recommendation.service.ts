@@ -3,10 +3,21 @@ import { RoomVote } from './room-vote.entity';
 import { Movie } from '../movies/movies.types';
 import { RecommendedResult } from './rooms.types';
 
+// Per-movie cache used inside the genetic algorithm
+interface ScoredMovie {
+  perUserScores: number[];
+  avgScore: number;
+  minScore: number;
+}
+
 @Injectable()
 export class RecommendationService {
-  // Entry point takes all votes in the room, candidate movies, and list of participant IDs.
-  // Returns movies sorted by the final group score (best first).
+  private readonly POPULATION_SIZE = 30;
+  private readonly GENERATIONS = 50;
+  private readonly MUTATION_RATE = 0.1;
+  private readonly TOURNAMENT_SIZE = 3;
+
+  // Entry point: scores all candidate movies for the group and sorts best-first.
   recommend(
     votes: RoomVote[],
     candidateMovies: Movie[],
@@ -14,43 +25,35 @@ export class RecommendationService {
   ): RecommendedResult[] {
     if (candidateMovies.length === 0 || participantIds.length === 0) return [];
 
-    // Step 1: build a genre preference profile for each user
+    // Genre preference profile per user: genre → weight in [−1, 1]
     const userProfiles = this.buildUserProfiles(votes, participantIds);
 
-    // Step 2: score every candidate movie for each user based on their profile
-    const cbfScores = this.computeCBFScores(
+    // Content-based score per movie per user
+    const contentScores = this.computeContentScores(
       candidateMovies,
       userProfiles,
       participantIds,
     );
 
-    // Step 3: find the best balance between Average and Least-Misery strategies.
-    // For a solo session there's no group conflict, so we just use Average (α = 1).
+    // Solo session → no group conflict, pure Average Strategy is optimal (α = 1)
     const alpha =
       participantIds.length <= 1
         ? 1.0
-        : this.geneticAlgorithm(cbfScores, candidateMovies);
+        : this.findOptimalAlpha(contentScores, candidateMovies);
 
-    // Count explicit likes per movie so the UI can show "everyone liked" badges
-    const likeCounts = new Map<string, number>();
-    for (const vote of votes) {
-      if (vote.vote === 'like') {
-        likeCounts.set(vote.movieId, (likeCounts.get(vote.movieId) ?? 0) + 1);
-      }
-    }
+    const likeCountByMovie = this.countLikesPerMovie(votes);
 
     return candidateMovies
       .map((movie) => {
-        const scores = cbfScores.get(movie.imdbID) ?? [];
+        const scores = contentScores.get(movie.imdbID) ?? [];
         const avgScore = this.averageStrategy(scores);
-        const minScore = this.leastMisery(scores);
+        const minScore = this.leastMiseryStrategy(scores);
         return {
           movie,
-          // Final score: weighted combination of the two group strategies
           score: alpha * avgScore + (1 - alpha) * minScore,
           avgScore,
           minScore,
-          likeCount: likeCounts.get(movie.imdbID) ?? 0,
+          likeCount: likeCountByMovie.get(movie.imdbID) ?? 0,
           alpha,
         };
       })
@@ -58,8 +61,8 @@ export class RecommendationService {
   }
 
   // Builds a genre weight map for each user.
-  // w(user, genre) = (likes - dislikes) / total interactions with that genre.
-  // Result is in [-1, 1]: +1 means loved every movie in this genre, -1 means hated them all.
+  // weight(user, genre) = (likes − dislikes) / (likes + dislikes)
+  // Result is in [−1, 1]: +1 means loved every movie in this genre, −1 means hated all.
   buildUserProfiles(
     votes: RoomVote[],
     participantIds: string[],
@@ -67,42 +70,32 @@ export class RecommendationService {
     const profiles = new Map<string, Map<string, number>>();
 
     for (const userId of participantIds) {
-      const userVotes = votes.filter((v) => v.userId === userId);
-      const genreLikes = new Map<string, number>();
-      const genreDislikes = new Map<string, number>();
+      const genreTally = new Map<string, { likes: number; dislikes: number }>();
 
-      for (const vote of userVotes) {
-        const genres = this.parseGenres((vote.movieData as Movie).Genre);
-        for (const genre of genres) {
-          if (vote.vote === 'like') {
-            genreLikes.set(genre, (genreLikes.get(genre) ?? 0) + 1);
-          } else {
-            genreDislikes.set(genre, (genreDislikes.get(genre) ?? 0) + 1);
-          }
+      for (const vote of votes.filter((v) => v.userId === userId)) {
+        for (const genre of this.parseGenres((vote.movieData as Movie).Genre)) {
+          const tally = genreTally.get(genre) ?? { likes: 0, dislikes: 0 };
+          if (vote.vote === 'like') tally.likes++;
+          else tally.dislikes++;
+          genreTally.set(genre, tally);
         }
       }
 
-      // Normalize: w = (L - D) / (L + D)
-      const weights = new Map<string, number>();
-      const allGenres = new Set([
-        ...genreLikes.keys(),
-        ...genreDislikes.keys(),
-      ]);
-      for (const genre of allGenres) {
-        const l = genreLikes.get(genre) ?? 0;
-        const d = genreDislikes.get(genre) ?? 0;
-        weights.set(genre, (l - d) / (l + d));
+      const genreWeights = new Map<string, number>();
+      for (const [genre, { likes, dislikes }] of genreTally) {
+        genreWeights.set(genre, (likes - dislikes) / (likes + dislikes));
       }
 
-      profiles.set(userId, weights);
+      profiles.set(userId, genreWeights);
     }
 
     return profiles;
   }
 
-  // Content-based score: r(user, movie) = sum of genre weights for genres present in the movie.
-  // Returns a Map<movieId, score[]> where score[i] is the score for participantIds[i].
-  computeCBFScores(
+  // Content-based score: score(user, movie) = sum of the user's genre weights
+  // for all genres that appear in the movie.
+  // Returns movieId → [score for participant 0, score for participant 1, ...]
+  computeContentScores(
     movies: Movie[],
     userProfiles: Map<string, Map<string, number>>,
     participantIds: string[],
@@ -111,138 +104,138 @@ export class RecommendationService {
 
     for (const movie of movies) {
       const genres = this.parseGenres(movie.Genre);
-      const scores = participantIds.map((userId) => {
+      const perUserScores = participantIds.map((userId) => {
         const profile = userProfiles.get(userId);
-        // No genres or no voting history → neutral score
         if (!profile || genres.length === 0) return 0;
-        return genres.reduce((sum, g) => sum + (profile.get(g) ?? 0), 0);
+        return genres.reduce(
+          (total, genre) => total + (profile.get(genre) ?? 0),
+          0,
+        );
       });
-      scoresByMovie.set(movie.imdbID, scores);
+      scoresByMovie.set(movie.imdbID, perUserScores);
     }
 
     return scoresByMovie;
   }
 
-  // Average Strategy: optimistic — takes the mean across all group members.
-  // Works well when preferences are similar.
+  // Average Strategy: mean score across all group members.
+  // Optimistic — good when the group has similar tastes.
   averageStrategy(scores: number[]): number {
     if (scores.length === 0) return 0;
-    return scores.reduce((s, v) => s + v, 0) / scores.length;
+    return scores.reduce((total, score) => total + score, 0) / scores.length;
   }
 
-  // Least Misery Strategy: pessimistic — uses the lowest individual score.
-  // Ensures no one in the group ends up with a movie they'd hate.
-  leastMisery(scores: number[]): number {
+  // Least Misery Strategy: the lowest individual score in the group.
+  // Pessimistic — prevents anyone from getting a movie they would strongly dislike.
+  leastMiseryStrategy(scores: number[]): number {
     if (scores.length === 0) return 0;
     return Math.min(...scores);
   }
 
-  // Genetic algorithm that finds the optimal α ∈ [0, 1].
-  // α = 1 → pure Average Strategy, α = 0 → pure Least Misery.
+  // Genetic algorithm that finds the optimal blending weight α ∈ [0, 1].
+  // α = 1 → pure Average Strategy (optimistic), α = 0 → pure Least Misery (pessimistic).
   //
-  // Key insight: α changes WHICH movies land in the top-10, not just their scores.
-  // A polarizing film (high avg, very negative lm) is pushed down under low α,
-  // replaced by a consensus pick — that shift is what actually affects fairness.
-  // The fitness therefore re-ranks movies for each α candidate, then measures
-  // per-user satisfaction on that α-specific top-10 and penalizes high variance
-  // (unfairness). This breaks the old monotone relationship that always gave α = 1.
-  geneticAlgorithm(cbfScores: Map<string, number[]>, movies: Movie[]): number {
-    const POPULATION_SIZE = 30;
-    const GENERATIONS = 50;
-    const MUTATION_RATE = 0.1;
-    const TOURNAMENT_SIZE = 3;
-
-    // Keep raw per-user scores so fitness can compute individual satisfaction
-    const precomputed = movies.map((m) => {
-      const scores = cbfScores.get(m.imdbID) ?? [];
+  // Key insight: α changes WHICH movies land in the top-10, not just their order.
+  // A polarizing film (high average, very negative minimum) is pushed down under low α,
+  // replaced by a consensus pick. The fitness therefore re-ranks the whole list for
+  // each α candidate, measures per-user satisfaction over that specific top-10,
+  // and penalizes variance (unfairness across group members).
+  private findOptimalAlpha(
+    contentScores: Map<string, number[]>,
+    movies: Movie[],
+  ): number {
+    const scoredMovies: ScoredMovie[] = movies.map((movie) => {
+      const perUserScores = contentScores.get(movie.imdbID) ?? [];
       return {
-        scores,
-        avg: this.averageStrategy(scores),
-        lm: this.leastMisery(scores),
+        perUserScores,
+        avgScore: this.averageStrategy(perUserScores),
+        minScore: this.leastMiseryStrategy(perUserScores),
       };
     });
 
-    const nUsers = precomputed[0]?.scores.length ?? 0;
+    const userCount = scoredMovies[0]?.perUserScores.length ?? 0;
 
-    // For a given α, rank all movies by the combined score, take the top-10,
-    // then compute each user's average satisfaction over that list.
-    // Fitness = mean satisfaction − variance (reward fairness, not just total score).
-    const fitness = (alpha: number): number => {
-      const top10 = [...precomputed]
-        .sort(
-          (a, b) =>
-            b.avg * alpha +
-            b.lm * (1 - alpha) -
-            (a.avg * alpha + a.lm * (1 - alpha)),
-        )
-        .slice(0, 10);
+    const fitness = (alpha: number) =>
+      this.evaluateFitness(scoredMovies, userCount, alpha);
 
-      if (top10.length === 0 || nUsers === 0) return 0;
+    // Deterministic seed → same votes always produce the same α, no page-refresh flicker
+    const rand = this.mulberry32(this.computeSeed(contentScores));
 
-      const userSats = Array.from(
-        { length: nUsers },
-        (_, ui) =>
-          top10.reduce((sum, m) => sum + (m.scores[ui] ?? 0), 0) / top10.length,
-      );
-
-      const mean = userSats.reduce((s, v) => s + v, 0) / nUsers;
-      const variance =
-        userSats.reduce((s, v) => s + (v - mean) ** 2, 0) / nUsers;
-
-      // Subtract variance so the GA prefers lists where everyone is equally satisfied
-      return mean - variance;
-    };
-
-    // Deterministic seed derived from the input scores so the same votes
-    // always produce the same α — no random flicker on page refresh.
-    let seed = 0;
-    for (const [movieId, scores] of cbfScores.entries()) {
-      for (let i = 0; i < movieId.length; i++) {
-        seed = (seed * 31 + movieId.charCodeAt(i)) | 0;
-      }
-      for (const s of scores) {
-        seed = (seed * 31 + Math.round(s * 10000)) | 0;
-      }
-    }
-    const rand = this.mulberry32(Math.abs(seed) || 1);
-
-    let population: number[] = Array.from({ length: POPULATION_SIZE }, () =>
-      rand(),
+    let population: number[] = Array.from(
+      { length: this.POPULATION_SIZE },
+      () => rand(),
     );
 
-    for (let gen = 0; gen < GENERATIONS; gen++) {
-      const next: number[] = [];
-      while (next.length < POPULATION_SIZE) {
-        // Select parents via tournament, cross them (arithmetic mean), then mutate
-        const p1 = this.tournamentSelect(
+    for (let generation = 0; generation < this.GENERATIONS; generation++) {
+      const nextGeneration: number[] = [];
+      while (nextGeneration.length < this.POPULATION_SIZE) {
+        const parent1 = this.tournamentSelect(
           population,
           fitness,
-          TOURNAMENT_SIZE,
+          this.TOURNAMENT_SIZE,
           rand,
         );
-        const p2 = this.tournamentSelect(
+        const parent2 = this.tournamentSelect(
           population,
           fitness,
-          TOURNAMENT_SIZE,
+          this.TOURNAMENT_SIZE,
           rand,
         );
-        let child = (p1 + p2) / 2;
-        if (rand() < MUTATION_RATE) {
+        // Arithmetic crossover: child is the midpoint of the two parents
+        let child = (parent1 + parent2) / 2;
+        // Random nudge to escape local optima
+        if (rand() < this.MUTATION_RATE) {
           child = Math.max(0, Math.min(1, child + (rand() * 0.2 - 0.1)));
         }
-        next.push(child);
+        nextGeneration.push(child);
       }
-      population = next;
+      population = nextGeneration;
     }
 
-    // Pick the best α from the final generation
     return population.reduce(
       (best, alpha) => (fitness(alpha) > fitness(best) ? alpha : best),
       population[0],
     );
   }
 
-  // Tournament selection: pick `size` random candidates, return the fittest one.
+  // Fitness = mean group satisfaction − variance.
+  // Re-ranks movies for the given α so the top-10 reflects actual recommendation output.
+  // Subtracting variance rewards lists where every user is equally satisfied (fairness).
+  private evaluateFitness(
+    scoredMovies: ScoredMovie[],
+    userCount: number,
+    alpha: number,
+  ): number {
+    const top10 = [...scoredMovies]
+      .sort(
+        (a, b) =>
+          b.avgScore * alpha +
+          b.minScore * (1 - alpha) -
+          (a.avgScore * alpha + a.minScore * (1 - alpha)),
+      )
+      .slice(0, 10);
+
+    if (top10.length === 0 || userCount === 0) return 0;
+
+    const userSatisfactions = Array.from(
+      { length: userCount },
+      (_, userIndex) =>
+        top10.reduce(
+          (total, movie) => total + (movie.perUserScores[userIndex] ?? 0),
+          0,
+        ) / top10.length,
+    );
+
+    const mean =
+      userSatisfactions.reduce((total, sat) => total + sat, 0) / userCount;
+    const variance =
+      userSatisfactions.reduce((total, sat) => total + (sat - mean) ** 2, 0) /
+      userCount;
+
+    return mean - variance;
+  }
+
+  // Tournament selection: pick `size` random candidates, return the fittest.
   private tournamentSelect(
     population: number[],
     fitness: (alpha: number) => number,
@@ -259,14 +252,30 @@ export class RecommendationService {
     );
   }
 
-  // Mulberry32 — fast seeded PRNG. Same seed always produces the same sequence.
+  // Hashes the content scores into a single integer so the GA always starts
+  // from the same initial population for the same set of votes.
+  private computeSeed(contentScores: Map<string, number[]>): number {
+    let seed = 0;
+    for (const [movieId, scores] of contentScores.entries()) {
+      for (let charIndex = 0; charIndex < movieId.length; charIndex++) {
+        seed = (seed * 31 + movieId.charCodeAt(charIndex)) | 0;
+      }
+      for (const score of scores) {
+        seed = (seed * 31 + Math.round(score * 10000)) | 0;
+      }
+    }
+    return Math.abs(seed) || 1;
+  }
+
+  // Mulberry32 — a fast seeded pseudo-random number generator.
+  // The same seed always produces the same sequence of numbers in [0, 1).
   private mulberry32(seed: number): () => number {
-    let s = seed;
+    let state = seed;
     return (): number => {
-      s = (s + 0x6d2b79f5) | 0;
-      let t = Math.imul(s ^ (s >>> 15), 1 | s);
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      state = (state + 0x6d2b79f5) | 0;
+      let mixed = Math.imul(state ^ (state >>> 15), 1 | state);
+      mixed = (mixed + Math.imul(mixed ^ (mixed >>> 7), 61 | mixed)) ^ mixed;
+      return ((mixed ^ (mixed >>> 14)) >>> 0) / 4294967296;
     };
   }
 
@@ -275,7 +284,17 @@ export class RecommendationService {
     if (!genreStr || genreStr === 'N/A') return [];
     return genreStr
       .split(',')
-      .map((g) => g.trim())
+      .map((genre) => genre.trim())
       .filter(Boolean);
+  }
+
+  private countLikesPerMovie(votes: RoomVote[]): Map<string, number> {
+    const counts = new Map<string, number>();
+    for (const vote of votes) {
+      if (vote.vote === 'like') {
+        counts.set(vote.movieId, (counts.get(vote.movieId) ?? 0) + 1);
+      }
+    }
+    return counts;
   }
 }
