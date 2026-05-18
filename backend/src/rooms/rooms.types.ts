@@ -19,13 +19,16 @@ export interface RoomState {
   createdAt: Date;
 }
 
-export interface MovieResult {
+export interface RecommendedResult {
   movie: Movie;
-  likedBy: string[];
+  score: number;
+  avgScore: number;
+  minScore: number;
   likeCount: number;
+  alpha: number;
 }
 
 export interface RoomResults {
   code: string;
-  movies: MovieResult[];
+  movies: RecommendedResult[];
 }

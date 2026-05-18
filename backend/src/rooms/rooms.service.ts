@@ -14,6 +14,7 @@ import { UsersService } from '../users/users.service';
 import { Movie, MovieFilters } from '../movies/movies.types';
 import { RoomState, RoomResults } from './rooms.types';
 import { RoomsGateway } from './rooms.gateway';
+import { RecommendationService } from './recommendation.service';
 
 @Injectable()
 export class RoomsService {
@@ -27,6 +28,7 @@ export class RoomsService {
     private readonly moviesService: MoviesService,
     private readonly usersService: UsersService,
     private readonly gateway: RoomsGateway,
+    private readonly recommendationService: RecommendationService,
   ) {}
 
   async create(userId: string, userEmail: string): Promise<{ code: string }> {
@@ -189,21 +191,19 @@ export class RoomsService {
 
   async getResults(code: string): Promise<RoomResults> {
     const room = await this.findByCode(code);
-    const likes = await this.voteRepo.find({
-      where: { roomId: room.id, vote: 'like' },
-    });
+    const [votes, participants] = await Promise.all([
+      this.voteRepo.find({ where: { roomId: room.id } }),
+      this.participantRepo.find({ where: { roomId: room.id } }),
+    ]);
 
-    const byMovie = new Map<string, { movie: Movie; likedBy: string[] }>();
-    for (const v of likes) {
-      if (!byMovie.has(v.movieId)) {
-        byMovie.set(v.movieId, { movie: v.movieData as Movie, likedBy: [] });
-      }
-      byMovie.get(v.movieId)!.likedBy.push(v.userId);
-    }
+    const candidateMovies = (room.movies as Movie[]) ?? [];
+    const participantIds = participants.map((p) => p.userId);
 
-    const movies = Array.from(byMovie.values())
-      .map(({ movie, likedBy }) => ({ movie, likedBy, likeCount: likedBy.length }))
-      .sort((a, b) => b.likeCount - a.likeCount);
+    const movies = this.recommendationService.recommend(
+      votes,
+      candidateMovies,
+      participantIds,
+    );
 
     return { code, movies };
   }

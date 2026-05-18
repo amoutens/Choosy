@@ -21,8 +21,11 @@ export interface RoomState {
 
 export interface MovieResult {
   movie: Movie
-  likedBy: string[]
+  score: number
+  avgScore: number
+  minScore: number
   likeCount: number
+  alpha: number
 }
 
 export interface RoomResults {

@@ -483,19 +483,28 @@ interface ResultsViewProps {
 
 const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDashboard }) => {
   const total = participants.length
-  const matches = results.movies.filter((m) => m.likeCount === total)
-  const others = results.movies.filter((m) => m.likeCount < total && m.likeCount > 0)
+  const alpha = results.movies[0]?.alpha ?? 1
+  const withLikes = results.movies.filter((m) => m.likeCount > 0)
+  const matches = withLikes.filter((m) => m.likeCount === total)
+  const others = withLikes.filter((m) => m.likeCount < total)
 
   return (
     <div className="w-full max-w-lg flex flex-col items-center gap-6">
-      <div className="flex gap-6 font-[Poppins] text-[14px]">
+      <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 font-[Poppins] text-[13px]">
         <span style={{ color: '#4ade80' }}>★ {matches.length} everyone liked</span>
-        <span style={{ color: 'rgba(255,255,255,0.35)' }}>{results.movies.length} total picks</span>
+        <span style={{ color: 'rgba(255,255,255,0.35)' }}>{withLikes.length} picks</span>
+        <span
+          className="px-2 py-0.5 rounded-lg"
+          style={{ background: 'rgba(206,159,252,0.12)', color: '#CE9FFC' }}
+          title="Algorithm balance: 1.0 = average only, 0.0 = least misery only"
+        >
+          α = {alpha.toFixed(2)}
+        </span>
       </div>
 
-      {results.movies.length === 0 ? (
+      {withLikes.length === 0 ? (
         <p className="font-[Poppins] text-[15px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          No one liked the same movies
+          No one liked any movies
         </p>
       ) : (
         <div
@@ -515,8 +524,8 @@ const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDashboard 
                 Everyone liked
               </p>
               <div className="grid grid-cols-3 gap-3 mb-5">
-                {matches.map(({ movie, likeCount }) => (
-                  <MovieResultCard key={movie.imdbID} movie={movie} likeCount={likeCount} total={total} />
+                {matches.map(({ movie, likeCount, score }) => (
+                  <MovieResultCard key={movie.imdbID} movie={movie} likeCount={likeCount} total={total} score={score} />
                 ))}
               </div>
             </>
@@ -528,11 +537,11 @@ const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDashboard 
                 className="font-[Poppins] text-[12px] font-semibold uppercase tracking-widest mb-3"
                 style={{ color: 'rgba(255,255,255,0.35)' }}
               >
-                Some liked
+                Also liked
               </p>
               <div className="grid grid-cols-3 gap-3">
-                {others.map(({ movie, likeCount }) => (
-                  <MovieResultCard key={movie.imdbID} movie={movie} likeCount={likeCount} total={total} />
+                {others.map(({ movie, likeCount, score }) => (
+                  <MovieResultCard key={movie.imdbID} movie={movie} likeCount={likeCount} total={total} score={score} />
                 ))}
               </div>
             </>
@@ -547,10 +556,11 @@ const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDashboard 
   )
 }
 
-const MovieResultCard: FC<{ movie: Movie; likeCount: number; total: number }> = ({
+const MovieResultCard: FC<{ movie: Movie; likeCount: number; total: number; score: number }> = ({
   movie,
   likeCount,
   total,
+  score,
 }) => (
   <div className="flex flex-col gap-1.5">
     <div className="relative rounded-xl overflow-hidden" style={{ aspectRatio: '2/3' }}>
@@ -595,9 +605,17 @@ const MovieResultCard: FC<{ movie: Movie; likeCount: number; total: number }> = 
     >
       {movie.Title.length > 18 ? movie.Title.slice(0, 16) + '…' : movie.Title}
     </p>
-    <p className="font-[Poppins]" style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
-      {movie.Year}
-    </p>
+    <div className="flex items-center justify-between">
+      <p className="font-[Poppins]" style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
+        {movie.Year}
+      </p>
+      <p
+        className="font-[Poppins] font-semibold"
+        style={{ fontSize: 10, color: score > 0 ? '#CE9FFC' : 'rgba(255,255,255,0.25)' }}
+      >
+        {score > 0 ? '+' : ''}{score.toFixed(2)}
+      </p>
+    </div>
   </div>
 )
 
