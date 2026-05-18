@@ -3,6 +3,7 @@ import { Movie, MovieFilters } from './movies.types'
 import { RoomState, RoomResults } from './rooms.types'
 
 export type { RoomState, RoomResults, Participant, MovieResult } from './rooms.types'
+export { RoomStatus } from './rooms.types'
 
 const headers = () => ({
   'Content-Type': 'application/json',
