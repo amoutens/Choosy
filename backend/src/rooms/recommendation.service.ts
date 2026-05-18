@@ -1,19 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { RoomVote } from './room-vote.entity';
 import { Movie } from '../movies/movies.types';
-
-export interface RecommendedResult {
-  movie: Movie;
-  score: number;
-  avgScore: number;
-  minScore: number;
-  likeCount: number;
-  alpha: number;
-}
+import { RecommendedResult } from './rooms.types';
 
 @Injectable()
 export class RecommendationService {
-  // Entry point — takes all votes in the room, candidate movies, and list of participant IDs.
+  // Entry point takes all votes in the room, candidate movies, and list of participant IDs.
   // Returns movies sorted by the final group score (best first).
   recommend(
     votes: RoomVote[],
@@ -147,47 +139,96 @@ export class RecommendationService {
 
   // Genetic algorithm that finds the optimal α ∈ [0, 1].
   // α = 1 → pure Average Strategy, α = 0 → pure Least Misery.
-  // Fitness is evaluated on the top-10 movies by average score to stay focused on relevant candidates.
+  //
+  // Key insight: α changes WHICH movies land in the top-10, not just their scores.
+  // A polarizing film (high avg, very negative lm) is pushed down under low α,
+  // replaced by a consensus pick — that shift is what actually affects fairness.
+  // The fitness therefore re-ranks movies for each α candidate, then measures
+  // per-user satisfaction on that α-specific top-10 and penalizes high variance
+  // (unfairness). This breaks the old monotone relationship that always gave α = 1.
   geneticAlgorithm(cbfScores: Map<string, number[]>, movies: Movie[]): number {
     const POPULATION_SIZE = 30;
     const GENERATIONS = 50;
     const MUTATION_RATE = 0.1;
     const TOURNAMENT_SIZE = 3;
 
-    // Precompute avg/lm for each movie so fitness() doesn't repeat work
+    // Keep raw per-user scores so fitness can compute individual satisfaction
     const precomputed = movies.map((m) => {
       const scores = cbfScores.get(m.imdbID) ?? [];
       return {
+        scores,
         avg: this.averageStrategy(scores),
         lm: this.leastMisery(scores),
       };
     });
 
-    const top10 = [...precomputed].sort((a, b) => b.avg - a.avg).slice(0, 10);
+    const nUsers = precomputed[0]?.scores.length ?? 0;
 
-    // Fitness: mean F(movie, α) over top-10 candidates
+    // For a given α, rank all movies by the combined score, take the top-10,
+    // then compute each user's average satisfaction over that list.
+    // Fitness = mean satisfaction − variance (reward fairness, not just total score).
     const fitness = (alpha: number): number => {
-      if (top10.length === 0) return 0;
-      return (
-        top10.reduce((sum, m) => sum + alpha * m.avg + (1 - alpha) * m.lm, 0) /
-        top10.length
+      const top10 = [...precomputed]
+        .sort(
+          (a, b) =>
+            b.avg * alpha +
+            b.lm * (1 - alpha) -
+            (a.avg * alpha + a.lm * (1 - alpha)),
+        )
+        .slice(0, 10);
+
+      if (top10.length === 0 || nUsers === 0) return 0;
+
+      const userSats = Array.from(
+        { length: nUsers },
+        (_, ui) =>
+          top10.reduce((sum, m) => sum + (m.scores[ui] ?? 0), 0) / top10.length,
       );
+
+      const mean = userSats.reduce((s, v) => s + v, 0) / nUsers;
+      const variance =
+        userSats.reduce((s, v) => s + (v - mean) ** 2, 0) / nUsers;
+
+      // Subtract variance so the GA prefers lists where everyone is equally satisfied
+      return mean - variance;
     };
 
-    // Random initial population of α values
-    let population = Array.from({ length: POPULATION_SIZE }, () =>
-      Math.random(),
+    // Deterministic seed derived from the input scores so the same votes
+    // always produce the same α — no random flicker on page refresh.
+    let seed = 0;
+    for (const [movieId, scores] of cbfScores.entries()) {
+      for (let i = 0; i < movieId.length; i++) {
+        seed = (seed * 31 + movieId.charCodeAt(i)) | 0;
+      }
+      for (const s of scores) {
+        seed = (seed * 31 + Math.round(s * 10000)) | 0;
+      }
+    }
+    const rand = this.mulberry32(Math.abs(seed) || 1);
+
+    let population: number[] = Array.from({ length: POPULATION_SIZE }, () =>
+      rand(),
     );
 
     for (let gen = 0; gen < GENERATIONS; gen++) {
       const next: number[] = [];
       while (next.length < POPULATION_SIZE) {
         // Select parents via tournament, cross them (arithmetic mean), then mutate
-        const p1 = this.tournamentSelect(population, fitness, TOURNAMENT_SIZE);
-        const p2 = this.tournamentSelect(population, fitness, TOURNAMENT_SIZE);
+        const p1 = this.tournamentSelect(
+          population,
+          fitness,
+          TOURNAMENT_SIZE,
+          rand,
+        );
+        const p2 = this.tournamentSelect(
+          population,
+          fitness,
+          TOURNAMENT_SIZE,
+          rand,
+        );
         let child = (p1 + p2) / 2;
-        if (Math.random() < MUTATION_RATE) {
-          child = Math.max(0, Math.min(1, child + (Math.random() * 0.2 - 0.1)));
+        if (rand() < MUTATION_RATE) {
+          child = Math.max(0, Math.min(1, child + (rand() * 0.2 - 0.1)));
         }
         next.push(child);
       }
@@ -206,15 +247,27 @@ export class RecommendationService {
     population: number[],
     fitness: (alpha: number) => number,
     size: number,
+    rand: () => number = Math.random,
   ): number {
     const candidates = Array.from(
       { length: size },
-      () => population[Math.floor(Math.random() * population.length)],
+      () => population[Math.floor(rand() * population.length)],
     );
     return candidates.reduce(
       (best, alpha) => (fitness(alpha) > fitness(best) ? alpha : best),
       candidates[0],
     );
+  }
+
+  // Mulberry32 — fast seeded PRNG. Same seed always produces the same sequence.
+  private mulberry32(seed: number): () => number {
+    let s = seed;
+    return (): number => {
+      s = (s + 0x6d2b79f5) | 0;
+      let t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
   }
 
   // Movie.Genre is a comma-separated string like "Action, Drama, Thriller"

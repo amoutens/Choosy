@@ -8,7 +8,7 @@ import { MovieCardStack } from '../components/swipe/MovieCardStack'
 import { Button } from '../components/ui/Button'
 import { useRequireAuth, logout } from '../lib/token'
 import { useSwipeMechanics } from '../hooks/useSwipeMechanics'
-import { useRoomSocket } from '../hooks/useRoomSocket'
+import { useRoomSocket, MovieRanking } from '../hooks/useRoomSocket'
 import { ROUTES } from '../lib/routes'
 import { Movie, MovieFilters } from '../api/movies.types'
 import {
@@ -32,6 +32,7 @@ const Room: FC = () => {
   const [localPhase, setLocalPhase] = useState<LocalPhase>('joining')
   const [roomState, setRoomState] = useState<RoomState | null>(null)
   const [results, setResults] = useState<RoomResults | null>(null)
+  const [movieRankings, setMovieRankings] = useState<MovieRanking[]>([])
   const [error, setError] = useState('')
   const [startError, setStartError] = useState('')
   const [isStarting, setIsStarting] = useState(false)
@@ -89,6 +90,21 @@ const Room: FC = () => {
       setVotingMovies(state.movies)
       resetRef.current()
       setLocalPhase('voting')
+    } else if (state.status === 'voting' && phase === 'voting') {
+      // Server re-ranked movies and possibly added new ones — sync the queue
+      const existingIds = new Set(allMoviesRef.current.map((m) => m.imdbID))
+      const newMovies = state.movies.filter((m) => !existingIds.has(m.imdbID))
+      allMoviesRef.current = [...allMoviesRef.current, ...newMovies]
+      setVotingMovies((prev) => {
+        if (prev.length === 0) return prev
+        const [top, ...rest] = prev
+        // Re-sort the unseen tail to match the server's canonical ranked order
+        const serverOrder = new Map(state.movies.map((m, i) => [m.imdbID, i]))
+        const sortedRest = [...rest, ...newMovies].sort(
+          (a, b) => (serverOrder.get(a.imdbID) ?? 999) - (serverOrder.get(b.imdbID) ?? 999),
+        )
+        return [top, ...sortedRest]
+      })
     } else if (state.status === 'results' && phase !== 'results') {
       if (!resultsLoadedRef.current) {
         resultsLoadedRef.current = true
@@ -118,7 +134,19 @@ const Room: FC = () => {
     init()
   }, [user, code])
 
-  useRoomSocket(code, (state) => applyServerStateRef.current(state))
+  useRoomSocket(
+    code,
+    (state) => applyServerStateRef.current(state),
+    (rankings) => {
+      setMovieRankings(rankings)
+      setVotingMovies((prev) => {
+        if (prev.length <= 1) return prev
+        const [top, ...rest] = prev
+        const scoreMap = new Map(rankings.map((r) => [r.imdbID, r.score]))
+        return [top, ...rest.sort((a, b) => (scoreMap.get(b.imdbID) ?? 0) - (scoreMap.get(a.imdbID) ?? 0))]
+      })
+    },
+  )
 
   const handleStart = async () => {
     if (!code) return
@@ -291,6 +319,10 @@ const Room: FC = () => {
                 <p className="font-[Poppins] text-[12px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
                   {swipedCount} / {totalCards} swiped
                 </p>
+
+                {movieRankings.length > 0 && (
+                  <LiveRecsPanel rankings={movieRankings} allMovies={allMoviesRef.current} />
+                )}
               </>
             ) : (
               <div className="flex flex-col items-center gap-4">
@@ -455,6 +487,40 @@ const LobbyView: FC<LobbyViewProps> = ({
   </div>
 )
 
+const LiveRecsPanel: FC<{ rankings: MovieRanking[]; allMovies: Movie[] }> = ({ rankings, allMovies }) => {
+  const movieMap = new Map(allMovies.map((m) => [m.imdbID, m]))
+  const top = rankings
+    .slice(0, 5)
+    .map((r) => ({ ...r, movie: movieMap.get(r.imdbID) }))
+    .filter((r): r is typeof r & { movie: Movie } => r.movie !== undefined)
+
+  return (
+    <div className="flex flex-col items-center gap-2 w-full max-w-xs">
+      <p className="font-[Poppins] text-[11px] uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.3)' }}>
+        Group top picks so far
+      </p>
+      <div className="flex gap-2 justify-center">
+        {top.map((rec, i) => (
+          <div key={rec.imdbID} className="relative flex-shrink-0">
+            <img
+              src={rec.movie.Poster}
+              alt={rec.movie.Title}
+              className="rounded-xl object-cover"
+              style={{ width: 48, height: 72 }}
+            />
+            <div
+              className="absolute top-1 left-1 font-[Poppins] font-bold rounded-md px-1"
+              style={{ fontSize: 9, background: 'rgba(0,0,0,0.65)', color: i === 0 ? '#CE9FFC' : 'rgba(255,255,255,0.6)' }}
+            >
+              #{i + 1}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 interface WaitingResultsViewProps {
   participants: RoomState['participants']
 }
@@ -487,6 +553,8 @@ const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDashboard 
   const withLikes = results.movies.filter((m) => m.likeCount > 0)
   const matches = withLikes.filter((m) => m.likeCount === total)
   const others = withLikes.filter((m) => m.likeCount < total)
+  const [showMatches, setShowMatches] = useState(true)
+  const [showOthers, setShowOthers] = useState(true)
 
   return (
     <div className="w-full max-w-lg flex flex-col items-center gap-6">
@@ -508,7 +576,7 @@ const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDashboard 
         </p>
       ) : (
         <div
-          className="w-full rounded-3xl p-5"
+          className="w-full rounded-3xl p-5 flex flex-col gap-4"
           style={{
             background: 'rgba(255,255,255,0.05)',
             border: '1px solid rgba(255,255,255,0.10)',
@@ -516,35 +584,61 @@ const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDashboard 
           }}
         >
           {matches.length > 0 && (
-            <>
-              <p
-                className="font-[Poppins] text-[12px] font-semibold uppercase tracking-widest mb-3"
-                style={{ color: '#4ade80' }}
+            <div>
+              <button
+                className="flex items-center gap-2 w-full mb-3 group"
+                onClick={() => setShowMatches((s) => !s)}
               >
-                Everyone liked
-              </p>
-              <div className="grid grid-cols-3 gap-3 mb-5">
-                {matches.map(({ movie, likeCount, score }) => (
-                  <MovieResultCard key={movie.imdbID} movie={movie} likeCount={likeCount} total={total} score={score} />
-                ))}
-              </div>
-            </>
+                <p
+                  className="font-[Poppins] text-[12px] font-semibold uppercase tracking-widest"
+                  style={{ color: '#4ade80' }}
+                >
+                  Everyone liked
+                </p>
+                <span
+                  className="font-[Poppins] text-[10px] transition-transform"
+                  style={{ color: '#4ade80', transform: showMatches ? 'rotate(0deg)' : 'rotate(-90deg)' }}
+                >
+                  ▾
+                </span>
+              </button>
+              {showMatches && (
+                <div className="grid grid-cols-3 gap-3">
+                  {matches.map(({ movie, likeCount, score }) => (
+                    <MovieResultCard key={movie.imdbID} movie={movie} likeCount={likeCount} total={total} score={score} />
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           {others.length > 0 && (
-            <>
-              <p
-                className="font-[Poppins] text-[12px] font-semibold uppercase tracking-widest mb-3"
-                style={{ color: 'rgba(255,255,255,0.35)' }}
+            <div>
+              <button
+                className="flex items-center gap-2 w-full mb-3"
+                onClick={() => setShowOthers((s) => !s)}
               >
-                Also liked
-              </p>
-              <div className="grid grid-cols-3 gap-3">
-                {others.map(({ movie, likeCount, score }) => (
-                  <MovieResultCard key={movie.imdbID} movie={movie} likeCount={likeCount} total={total} score={score} />
-                ))}
-              </div>
-            </>
+                <p
+                  className="font-[Poppins] text-[12px] font-semibold uppercase tracking-widest"
+                  style={{ color: 'rgba(255,255,255,0.35)' }}
+                >
+                  Also liked
+                </p>
+                <span
+                  className="font-[Poppins] text-[10px] transition-transform"
+                  style={{ color: 'rgba(255,255,255,0.35)', transform: showOthers ? 'rotate(0deg)' : 'rotate(-90deg)' }}
+                >
+                  ▾
+                </span>
+              </button>
+              {showOthers && (
+                <div className="grid grid-cols-3 gap-3">
+                  {others.map(({ movie, likeCount, score }) => (
+                    <MovieResultCard key={movie.imdbID} movie={movie} likeCount={likeCount} total={total} score={score} />
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -561,62 +655,87 @@ const MovieResultCard: FC<{ movie: Movie; likeCount: number; total: number; scor
   likeCount,
   total,
   score,
-}) => (
-  <div className="flex flex-col gap-1.5">
-    <div className="relative rounded-xl overflow-hidden" style={{ aspectRatio: '2/3' }}>
-      <img src={movie.Poster} alt={movie.Title} className="w-full h-full object-cover" />
+}) => {
+  const [showGenres, setShowGenres] = useState(false)
+  const genres = movie.Genre !== 'N/A' ? movie.Genre.split(', ') : []
+
+  return (
+    <div className="flex flex-col gap-1.5">
       <div
-        className="absolute inset-0"
-        style={{ background: 'linear-gradient(to top, rgba(10,5,25,0.9) 0%, transparent 55%)' }}
-      />
-      <div
-        className="absolute bottom-1.5 left-1.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg"
-        style={{
-          background: likeCount === total ? 'rgba(74,222,128,0.25)' : 'rgba(0,0,0,0.55)',
-          backdropFilter: 'blur(4px)',
-        }}
+        className="relative rounded-xl overflow-hidden cursor-pointer select-none"
+        style={{ aspectRatio: '2/3' }}
+        onClick={() => setShowGenres((s) => !s)}
       >
-        <span style={{ color: likeCount === total ? '#4ade80' : 'rgba(255,255,255,0.5)', fontSize: 9 }}>
-          ♥
-        </span>
-        <span
-          className="font-[Poppins] font-semibold"
-          style={{ fontSize: 10, color: likeCount === total ? '#4ade80' : 'rgba(255,255,255,0.7)' }}
-        >
-          {likeCount}/{total}
-        </span>
-      </div>
-      {movie.imdbRating !== 'N/A' && (
+        <img src={movie.Poster} alt={movie.Title} className="w-full h-full object-cover" />
         <div
-          className="absolute bottom-1.5 right-1.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg"
-          style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to top, rgba(10,5,25,0.9) 0%, transparent 55%)' }}
+        />
+
+        {showGenres && genres.length > 0 && (
+          <div
+            className="absolute inset-0 flex flex-wrap content-center gap-1 p-2 justify-center"
+            style={{ background: 'rgba(10,5,25,0.87)', backdropFilter: 'blur(3px)' }}
+          >
+            {genres.map((g) => (
+              <span
+                key={g}
+                className="font-[Poppins] px-1.5 py-0.5 rounded-md"
+                style={{ fontSize: 9, background: 'rgba(206,159,252,0.2)', color: '#CE9FFC' }}
+              >
+                {g}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div
+          className="absolute bottom-1.5 left-1.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg"
+          style={{
+            background: likeCount === total ? 'rgba(74,222,128,0.25)' : 'rgba(0,0,0,0.55)',
+            backdropFilter: 'blur(4px)',
+          }}
         >
-          <span style={{ color: '#facc15', fontSize: 9 }}>★</span>
-          <span className="font-[Poppins] font-semibold text-white" style={{ fontSize: 10 }}>
-            {movie.imdbRating}
+          <span style={{ color: likeCount === total ? '#4ade80' : 'rgba(255,255,255,0.5)', fontSize: 9 }}>♥</span>
+          <span
+            className="font-[Poppins] font-semibold"
+            style={{ fontSize: 10, color: likeCount === total ? '#4ade80' : 'rgba(255,255,255,0.7)' }}
+          >
+            {likeCount}/{total}
           </span>
         </div>
-      )}
-    </div>
-    <p
-      className="font-[Poppins] text-white font-semibold leading-tight"
-      style={{ fontSize: 12 }}
-      title={movie.Title}
-    >
-      {movie.Title.length > 18 ? movie.Title.slice(0, 16) + '…' : movie.Title}
-    </p>
-    <div className="flex items-center justify-between">
-      <p className="font-[Poppins]" style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
-        {movie.Year}
-      </p>
+        {movie.imdbRating !== 'N/A' && (
+          <div
+            className="absolute bottom-1.5 right-1.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg"
+            style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}
+          >
+            <span style={{ color: '#facc15', fontSize: 9 }}>★</span>
+            <span className="font-[Poppins] font-semibold text-white" style={{ fontSize: 10 }}>
+              {movie.imdbRating}
+            </span>
+          </div>
+        )}
+      </div>
       <p
-        className="font-[Poppins] font-semibold"
-        style={{ fontSize: 10, color: score > 0 ? '#CE9FFC' : 'rgba(255,255,255,0.25)' }}
+        className="font-[Poppins] text-white font-semibold leading-tight"
+        style={{ fontSize: 12 }}
+        title={movie.Title}
       >
-        {score > 0 ? '+' : ''}{score.toFixed(2)}
+        {movie.Title.length > 18 ? movie.Title.slice(0, 16) + '…' : movie.Title}
       </p>
+      <div className="flex items-center justify-between">
+        <p className="font-[Poppins]" style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
+          {movie.Year}
+        </p>
+        <p
+          className="font-[Poppins] font-semibold"
+          style={{ fontSize: 10, color: score > 0 ? '#CE9FFC' : 'rgba(255,255,255,0.25)' }}
+        >
+          {score > 0 ? '+' : ''}{score.toFixed(2)}
+        </p>
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 export default Room

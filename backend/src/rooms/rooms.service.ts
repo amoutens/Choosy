@@ -166,6 +166,88 @@ export class RoomsService {
       });
       await this.voteRepo.save(v);
     }
+
+    this.pushLiveRecommendations(room, code).catch(() => {});
+  }
+
+  private async pushLiveRecommendations(room: Room, code: string): Promise<void> {
+    const [votes, participants] = await Promise.all([
+      this.voteRepo.find({ where: { roomId: room.id } }),
+      this.participantRepo.find({ where: { roomId: room.id } }),
+    ]);
+
+    const candidateMovies = (room.movies as Movie[]) ?? [];
+    const participantIds = participants.map((p) => p.userId);
+    const ranked = this.recommendationService.recommend(
+      votes,
+      candidateMovies,
+      participantIds,
+    );
+
+    // Emit ranked order so the live panel stays up to date for everyone
+    this.gateway.emitLiveRecommendations(
+      code,
+      ranked.map((r) => ({ imdbID: r.movie.imdbID, score: r.score })),
+    );
+
+    // Every 5 total votes: re-rank the canonical movie list and top up to 50 films
+    if (votes.length > 0 && votes.length % 5 === 0) {
+      await this.adaptMoviePool(room, code, votes, participantIds, ranked);
+    }
+  }
+
+  // Re-ranks the canonical movie list by group preference and fetches more films
+  // (preferred genres) to keep the pool at ~50 titles.  Runs every 5 votes.
+  private async adaptMoviePool(
+    room: Room,
+    code: string,
+    votes: RoomVote[],
+    participantIds: string[],
+    ranked: { movie: Movie }[],
+  ): Promise<void> {
+    // Ranked movies become the new canonical order (best first)
+    const rankedMovies = ranked.map((r) => r.movie);
+    const existingIds = new Set(rankedMovies.map((m) => m.imdbID));
+
+    // How many more films we need to reach 50
+    const needed = Math.max(0, 50 - rankedMovies.length);
+    let newMovies: Movie[] = [];
+
+    if (needed > 0) {
+      // Determine which genres the group enjoys to guide the fetch
+      const userProfiles = this.recommendationService.buildUserProfiles(
+        votes,
+        participantIds,
+      );
+      const genreSums = new Map<string, number>();
+      const genreCount = new Map<string, number>();
+      for (const profile of userProfiles.values()) {
+        for (const [genre, weight] of profile.entries()) {
+          genreSums.set(genre, (genreSums.get(genre) ?? 0) + weight);
+          genreCount.set(genre, (genreCount.get(genre) ?? 0) + 1);
+        }
+      }
+      const likedGenres = [...genreSums.keys()].filter(
+        (g) => (genreSums.get(g)! / genreCount.get(g)!) > 0.3,
+      );
+
+      const baseFilters = (room.filters as MovieFilters) ?? {};
+      const result = await this.moviesService.getMovies({
+        ...baseFilters,
+        genres: likedGenres.length > 0 ? likedGenres : undefined,
+        sortIndex: Math.floor(Math.random() * 3),
+      });
+
+      newMovies = result.movies
+        .filter((m) => !existingIds.has(m.imdbID))
+        .slice(0, needed);
+    }
+
+    room.movies = [...rankedMovies, ...newMovies];
+    await this.roomRepo.save(room);
+
+    const state = await this.getState(code);
+    this.gateway.emitRoomUpdated(code, state);
   }
 
   async finish(code: string, userId: string): Promise<void> {

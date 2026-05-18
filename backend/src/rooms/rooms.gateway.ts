@@ -8,6 +8,11 @@ import {
 import { Server, Socket } from 'socket.io';
 import { RoomState } from './rooms.types';
 
+export interface MovieRanking {
+  imdbID: string;
+  score: number;
+}
+
 @WebSocketGateway({
   cors: { origin: 'http://localhost:3000', credentials: true },
 })
@@ -25,5 +30,9 @@ export class RoomsGateway {
 
   emitRoomUpdated(code: string, state: RoomState): void {
     this.server.to(code).emit('room-updated', state);
+  }
+
+  emitLiveRecommendations(code: string, rankings: MovieRanking[]): void {
+    this.server.to(code).emit('live-recommendations', rankings);
   }
 }
