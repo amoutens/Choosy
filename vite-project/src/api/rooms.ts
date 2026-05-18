@@ -3,6 +3,7 @@ import { Movie, MovieFilters } from './movies.types'
 import { RoomState, RoomResults } from './rooms.types'
 
 export type { RoomState, RoomResults, Participant, MovieResult } from './rooms.types'
+export { RoomStatus } from './rooms.types'
 
 const headers = () => ({
   'Content-Type': 'application/json',
@@ -51,7 +52,7 @@ export async function submitVote(
   code: string,
   movieId: string,
   vote: 'like' | 'dislike',
-  movieData: Movie,
+  movieData: Movie
 ): Promise<void> {
   await fetch(`${API_BASE}/rooms/${code}/vote`, {
     method: 'POST',

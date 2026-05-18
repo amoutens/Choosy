@@ -14,6 +14,7 @@ import { UsersService } from '../users/users.service';
 import { Movie, MovieFilters } from '../movies/movies.types';
 import { RoomState, RoomResults } from './rooms.types';
 import { RoomsGateway } from './rooms.gateway';
+import { RecommendationService } from './recommendation.service';
 
 @Injectable()
 export class RoomsService {
@@ -27,6 +28,7 @@ export class RoomsService {
     private readonly moviesService: MoviesService,
     private readonly usersService: UsersService,
     private readonly gateway: RoomsGateway,
+    private readonly recommendationService: RecommendationService,
   ) {}
 
   async create(userId: string, userEmail: string): Promise<{ code: string }> {
@@ -34,12 +36,9 @@ export class RoomsService {
     const room = this.roomRepo.create({ code, hostId: userId });
     await this.roomRepo.save(room);
 
-    const participant = this.participantRepo.create({
-      roomId: room.id,
-      userId,
-      userEmail,
-    });
-    await this.participantRepo.save(participant);
+    await this.participantRepo.save(
+      this.participantRepo.create({ roomId: room.id, userId, userEmail }),
+    );
 
     return { code };
   }
@@ -49,9 +48,8 @@ export class RoomsService {
     const participants = await this.participantRepo.find({
       where: { roomId: room.id },
     });
-
     const userMap = await this.usersService.findByIds(
-      participants.map((p) => p.userId),
+      participants.map((participant) => participant.userId),
     );
 
     return {
@@ -61,12 +59,12 @@ export class RoomsService {
       status: room.status,
       filters: (room.filters as MovieFilters) ?? {},
       movies: (room.movies as Movie[]) ?? [],
-      participants: participants.map((p) => ({
-        userId: p.userId,
-        userEmail: p.userEmail,
-        name: userMap.get(p.userId)?.name ?? null,
-        avatar: userMap.get(p.userId)?.avatar ?? null,
-        hasFinished: p.hasFinished,
+      participants: participants.map((participant) => ({
+        userId: participant.userId,
+        userEmail: participant.userEmail,
+        name: userMap.get(participant.userId)?.name ?? null,
+        avatar: userMap.get(participant.userId)?.avatar ?? null,
+        hasFinished: participant.hasFinished,
       })),
       createdAt: room.createdAt,
     };
@@ -75,24 +73,20 @@ export class RoomsService {
   async join(code: string, userId: string, userEmail: string): Promise<void> {
     const room = await this.findByCode(code);
 
-    const existing = await this.participantRepo.findOne({
+    const alreadyJoined = await this.participantRepo.findOne({
       where: { roomId: room.id, userId },
     });
-    if (existing) return;
+    if (alreadyJoined) return;
 
     if (room.status !== 'waiting') {
       throw new BadRequestException('Room has already started');
     }
 
-    const participant = this.participantRepo.create({
-      roomId: room.id,
-      userId,
-      userEmail,
-    });
-    await this.participantRepo.save(participant);
+    await this.participantRepo.save(
+      this.participantRepo.create({ roomId: room.id, userId, userEmail }),
+    );
 
-    const state = await this.getState(code);
-    this.gateway.emitRoomUpdated(code, state);
+    this.gateway.emitRoomUpdated(code, await this.getState(code));
   }
 
   async start(
@@ -109,15 +103,15 @@ export class RoomsService {
       throw new BadRequestException('Room has already started');
     }
 
-    const result = await this.moviesService.getMovies(filters);
-    let movies = result.movies;
+    const firstPage = await this.moviesService.getMovies(filters);
+    let movies = firstPage.movies;
 
-    if (movies.length < 15 && result.nextPageToken) {
-      const more = await this.moviesService.getMovies({
+    if (movies.length < 15 && firstPage.nextPageToken) {
+      const secondPage = await this.moviesService.getMovies({
         ...filters,
-        pageToken: result.nextPageToken,
+        pageToken: firstPage.nextPageToken,
       });
-      movies = [...movies, ...more.movies];
+      movies = [...movies, ...secondPage.movies];
     }
 
     if (movies.length === 0) {
@@ -131,8 +125,7 @@ export class RoomsService {
     room.movies = movies;
     await this.roomRepo.save(room);
 
-    const state = await this.getState(code);
-    this.gateway.emitRoomUpdated(code, state);
+    this.gateway.emitRoomUpdated(code, await this.getState(code));
   }
 
   async vote(
@@ -148,22 +141,25 @@ export class RoomsService {
       throw new BadRequestException('Room is not in voting phase');
     }
 
-    const existing = await this.voteRepo.findOne({
+    const existingVote = await this.voteRepo.findOne({
       where: { roomId: room.id, userId, movieId },
     });
 
-    if (existing) {
-      await this.voteRepo.update(existing.id, { vote });
+    if (existingVote) {
+      await this.voteRepo.update(existingVote.id, { vote });
     } else {
-      const v = this.voteRepo.create({
-        roomId: room.id,
-        userId,
-        movieId,
-        vote,
-        movieData,
-      });
-      await this.voteRepo.save(v);
+      await this.voteRepo.save(
+        this.voteRepo.create({
+          roomId: room.id,
+          userId,
+          movieId,
+          vote,
+          movieData,
+        }),
+      );
     }
+
+    this.pushLiveRecommendations(room, code).catch(() => {});
   }
 
   async finish(code: string, userId: string): Promise<void> {
@@ -178,34 +174,118 @@ export class RoomsService {
       { hasFinished: true },
     );
 
-    const all = await this.participantRepo.find({ where: { roomId: room.id } });
-    if (all.every((p) => p.hasFinished)) {
+    const allParticipants = await this.participantRepo.find({
+      where: { roomId: room.id },
+    });
+    if (allParticipants.every((participant) => participant.hasFinished)) {
       await this.roomRepo.update(room.id, { status: 'results' });
     }
 
-    const state = await this.getState(code);
-    this.gateway.emitRoomUpdated(code, state);
+    this.gateway.emitRoomUpdated(code, await this.getState(code));
   }
 
   async getResults(code: string): Promise<RoomResults> {
     const room = await this.findByCode(code);
-    const likes = await this.voteRepo.find({
-      where: { roomId: room.id, vote: 'like' },
-    });
+    const [votes, participants] = await Promise.all([
+      this.voteRepo.find({ where: { roomId: room.id } }),
+      this.participantRepo.find({ where: { roomId: room.id } }),
+    ]);
 
-    const byMovie = new Map<string, { movie: Movie; likedBy: string[] }>();
-    for (const v of likes) {
-      if (!byMovie.has(v.movieId)) {
-        byMovie.set(v.movieId, { movie: v.movieData as Movie, likedBy: [] });
-      }
-      byMovie.get(v.movieId)!.likedBy.push(v.userId);
-    }
-
-    const movies = Array.from(byMovie.values())
-      .map(({ movie, likedBy }) => ({ movie, likedBy, likeCount: likedBy.length }))
-      .sort((a, b) => b.likeCount - a.likeCount);
+    const movies = this.recommendationService.recommend(
+      votes,
+      (room.movies as Movie[]) ?? [],
+      participants.map((participant) => participant.userId),
+    );
 
     return { code, movies };
+  }
+
+  private async pushLiveRecommendations(
+    room: Room,
+    code: string,
+  ): Promise<void> {
+    const [votes, participants] = await Promise.all([
+      this.voteRepo.find({ where: { roomId: room.id } }),
+      this.participantRepo.find({ where: { roomId: room.id } }),
+    ]);
+
+    const participantIds = participants.map(
+      (participant) => participant.userId,
+    );
+    const ranked = this.recommendationService.recommend(
+      votes,
+      (room.movies as Movie[]) ?? [],
+      participantIds,
+    );
+
+    this.gateway.emitLiveRecommendations(
+      code,
+      ranked.map((result) => ({
+        imdbID: result.movie.imdbID,
+        score: result.score,
+      })),
+    );
+
+    if (votes.length > 0 && votes.length % 5 === 0) {
+      await this.adaptMoviePool(room, code, votes, participantIds, ranked);
+    }
+  }
+
+  // Re-ranks the pool by current group preferences and fetches more movies
+  // in liked genres to keep the total at ~50 titles. Runs every 5 votes.
+  private async adaptMoviePool(
+    room: Room,
+    code: string,
+    votes: RoomVote[],
+    participantIds: string[],
+    ranked: { movie: Movie }[],
+  ): Promise<void> {
+    const rankedMovies = ranked.map((result) => result.movie);
+    const existingIds = new Set(rankedMovies.map((movie) => movie.imdbID));
+    const needed = Math.max(0, 50 - rankedMovies.length);
+    let newMovies: Movie[] = [];
+
+    if (needed > 0) {
+      const likedGenres = this.resolveGroupLikedGenres(votes, participantIds);
+      const fetchResult = await this.moviesService.getMovies({
+        ...((room.filters as MovieFilters) ?? {}),
+        genres: likedGenres.length > 0 ? likedGenres : undefined,
+        sortIndex: Math.floor(Math.random() * 3),
+      });
+      newMovies = fetchResult.movies
+        .filter((movie) => !existingIds.has(movie.imdbID))
+        .slice(0, needed);
+    }
+
+    room.movies = [...rankedMovies, ...newMovies];
+    await this.roomRepo.save(room);
+
+    this.gateway.emitRoomUpdated(code, await this.getState(code));
+  }
+
+  // Returns genres where the group's average weight exceeds the 0.3 threshold.
+  private resolveGroupLikedGenres(
+    votes: RoomVote[],
+    participantIds: string[],
+  ): string[] {
+    const userProfiles = this.recommendationService.buildUserProfiles(
+      votes,
+      participantIds,
+    );
+    const genreWeightSums = new Map<string, number>();
+    const genreProfileCount = new Map<string, number>();
+
+    for (const profile of userProfiles.values()) {
+      for (const [genre, weight] of profile.entries()) {
+        genreWeightSums.set(genre, (genreWeightSums.get(genre) ?? 0) + weight);
+        genreProfileCount.set(genre, (genreProfileCount.get(genre) ?? 0) + 1);
+      }
+    }
+
+    return [...genreWeightSums.keys()].filter(
+      (genre) =>
+        genreWeightSums.get(genre)! / genreProfileCount.get(genre)! > 0.3,
+    );
   }
 
   private async findByCode(code: string): Promise<Room> {

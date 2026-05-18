@@ -115,9 +115,7 @@ export const MovieCard: FC<MovieCardProps> = ({
       zIndex: 3,
       transform: `translateX(${translateX}px) rotate(${rotation}deg)`,
       transition:
-        isDragging && !dismissed
-          ? 'none'
-          : 'transform 0.36s cubic-bezier(0.25,0.46,0.45,0.94)',
+        isDragging && !dismissed ? 'none' : 'transform 0.36s cubic-bezier(0.25,0.46,0.45,0.94)',
       cursor: isDragging ? 'grabbing' : 'grab',
       touchAction: 'none',
       boxShadow: '0 28px 60px rgba(0,0,0,0.55)',
@@ -127,7 +125,12 @@ export const MovieCard: FC<MovieCardProps> = ({
     onPointerUp={onPointerUp}
     onPointerCancel={onPointerUp}
   >
-    <img src={movie.Poster} alt={movie.Title} className="w-full h-full object-cover" draggable={false} />
+    <img
+      src={movie.Poster}
+      alt={movie.Title}
+      className="w-full h-full object-cover"
+      draggable={false}
+    />
     <div
       className="absolute inset-0"
       style={{

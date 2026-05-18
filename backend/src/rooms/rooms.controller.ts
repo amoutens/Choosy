@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RoomsService } from './rooms.service';
 import { Movie, MovieFilters } from '../movies/movies.types';
@@ -45,7 +53,8 @@ export class RoomsController {
   vote(
     @Param('code') code: string,
     @Request() req: AuthRequest,
-    @Body() body: { movieId: string; vote: 'like' | 'dislike'; movieData: Movie },
+    @Body()
+    body: { movieId: string; vote: 'like' | 'dislike'; movieData: Movie },
   ) {
     return this.roomsService.vote(
       code,

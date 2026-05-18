@@ -3,17 +3,22 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { PageBackground } from '../components/PageBackground'
 import { Logo } from '../components/Logo'
 import { UserMenu } from '../components/UserMenu'
-import { FilterPanel } from '../components/swipe/FilterPanel'
 import { MovieCardStack } from '../components/swipe/MovieCardStack'
 import { Button } from '../components/ui/Button'
+import { Spinner } from '../components/ui/Spinner'
+import { LobbyView } from '../components/room/LobbyView'
+import { LiveRecsPanel } from '../components/room/LiveRecsPanel'
+import { WaitingResultsView } from '../components/room/WaitingResultsView'
+import { ResultsView } from '../components/room/ResultsView'
 import { useRequireAuth, logout } from '../lib/token'
 import { useSwipeMechanics } from '../hooks/useSwipeMechanics'
-import { useRoomSocket } from '../hooks/useRoomSocket'
+import { useRoomSocket, MovieRanking } from '../hooks/useRoomSocket'
 import { ROUTES } from '../lib/routes'
 import { Movie, MovieFilters } from '../api/movies.types'
 import {
   RoomState,
   RoomResults,
+  RoomStatus,
   getRoomState,
   joinRoom,
   startRoom,
@@ -22,26 +27,36 @@ import {
   getRoomResults,
 } from '../api/rooms'
 
-type LocalPhase = 'joining' | 'lobby' | 'voting' | 'done' | 'results'
+enum LocalPhase {
+  Joining = 'joining',
+  Lobby = 'lobby',
+  Voting = 'voting',
+  Done = 'done',
+  Results = 'results',
+}
 
 const Room: FC = () => {
   const { code } = useParams<{ code: string }>()
   const navigate = useNavigate()
   const user = useRequireAuth()
 
-  const [localPhase, setLocalPhase] = useState<LocalPhase>('joining')
+  const [localPhase, setLocalPhase] = useState<LocalPhase>(LocalPhase.Joining)
   const [roomState, setRoomState] = useState<RoomState | null>(null)
   const [results, setResults] = useState<RoomResults | null>(null)
+  const [movieRankings, setMovieRankings] = useState<MovieRanking[]>([])
   const [error, setError] = useState('')
   const [startError, setStartError] = useState('')
   const [isStarting, setIsStarting] = useState(false)
 
   const [votingMovies, setVotingMovies] = useState<Movie[]>([])
+  // allMovies in state for rendering; allMoviesRef for stale-closure-free callbacks
+  const [allMovies, setAllMovies] = useState<Movie[]>([])
   const allMoviesRef = useRef<Movie[]>([])
   const votingStartedRef = useRef(false)
   const resultsLoadedRef = useRef(false)
-  const localPhaseRef = useRef<LocalPhase>('joining')
-  localPhaseRef.current = localPhase
+  const localPhaseRef = useRef<LocalPhase>(LocalPhase.Joining)
+  const resetRef = useRef<() => void>(() => {})
+  const applyServerStateRef = useRef<(state: RoomState) => void>(() => {})
 
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
   const [selectedGenres, setSelectedGenres] = useState<string[]>([])
@@ -50,56 +65,108 @@ const Room: FC = () => {
   const [minRating, setMinRating] = useState('')
   const [maxRating, setMaxRating] = useState('')
 
-  const { dismissed, showPlot, rotation, translateX, likeOpacity, nopeOpacity, dismiss, reset, ...pointers } =
-    useSwipeMechanics({
-      movies: votingMovies,
-      onLike: (id) => {
-        const movie = allMoviesRef.current.find((m) => m.imdbID === id)
-        if (movie && code) submitVote(code, id, 'like', movie).catch(() => {})
-      },
-      onDislike: (id) => {
-        const movie = allMoviesRef.current.find((m) => m.imdbID === id)
-        if (movie && code) submitVote(code, id, 'dislike', movie).catch(() => {})
-      },
-      onRemoveTop: () => setVotingMovies((prev) => prev.slice(1)),
-    })
+  const {
+    dismissed,
+    showPlot,
+    rotation,
+    translateX,
+    likeOpacity,
+    nopeOpacity,
+    dismiss,
+    reset,
+    ...pointers
+  } = useSwipeMechanics({
+    movies: votingMovies,
+    onLike: (id) => {
+      const movie = allMoviesRef.current.find((m) => m.imdbID === id)
+      if (movie && code) submitVote(code, id, 'like', movie).catch(() => {})
+    },
+    onDislike: (id) => {
+      const movie = allMoviesRef.current.find((m) => m.imdbID === id)
+      if (movie && code) submitVote(code, id, 'dislike', movie).catch(() => {})
+    },
+    onRemoveTop: () => setVotingMovies((prev) => prev.slice(1)),
+  })
+
+  useEffect(() => {
+    localPhaseRef.current = localPhase
+  })
+  useEffect(() => {
+    resetRef.current = reset
+  })
+
+  const handleEndVoting = useCallback(async () => {
+    if (!code || localPhaseRef.current === LocalPhase.Done) return
+    setLocalPhase(LocalPhase.Done)
+    await finishVoting(code).catch(() => {})
+  }, [code])
 
   useEffect(() => {
     if (
       votingStartedRef.current &&
       votingMovies.length === 0 &&
-      localPhaseRef.current === 'voting'
+      localPhaseRef.current === LocalPhase.Voting
     ) {
       handleEndVoting()
     }
-  }, [votingMovies.length])
+  }, [votingMovies.length, handleEndVoting])
 
-  const resetRef = useRef(reset)
-  resetRef.current = reset
+  const applyServerState = useCallback(
+    (state: RoomState) => {
+      setRoomState(state)
+      const phase = localPhaseRef.current
+      const isInLobby = phase === LocalPhase.Joining || phase === LocalPhase.Lobby
 
-  const applyServerState = useCallback((state: RoomState) => {
-    setRoomState(state)
-    const phase = localPhaseRef.current
-
-    if (state.status === 'waiting' && (phase === 'joining' || phase === 'lobby')) {
-      setLocalPhase('lobby')
-    } else if (state.status === 'voting' && (phase === 'joining' || phase === 'lobby')) {
-      allMoviesRef.current = state.movies
-      votingStartedRef.current = true
-      setVotingMovies(state.movies)
-      resetRef.current()
-      setLocalPhase('voting')
-    } else if (state.status === 'results' && phase !== 'results') {
-      if (!resultsLoadedRef.current) {
-        resultsLoadedRef.current = true
-        getRoomResults(code!).then(setResults).catch(() => {})
+      if (state.status === RoomStatus.Waiting && isInLobby) {
+        setLocalPhase(LocalPhase.Lobby)
+        return
       }
-      setLocalPhase('results')
-    }
-  }, [code])
 
-  const applyServerStateRef = useRef(applyServerState)
-  applyServerStateRef.current = applyServerState
+      if (state.status === RoomStatus.Voting && isInLobby) {
+        allMoviesRef.current = state.movies
+        setAllMovies(state.movies)
+        votingStartedRef.current = true
+        setVotingMovies(state.movies)
+        resetRef.current()
+        setLocalPhase(LocalPhase.Voting)
+        return
+      }
+
+      if (state.status === RoomStatus.Voting && phase === LocalPhase.Voting) {
+        const existingIds = new Set(allMoviesRef.current.map((m) => m.imdbID))
+        const newMovies = state.movies.filter((m) => !existingIds.has(m.imdbID))
+        const merged = [...allMoviesRef.current, ...newMovies]
+        allMoviesRef.current = merged
+        setAllMovies(merged)
+        setVotingMovies((prev) => {
+          if (prev.length === 0) return prev
+          const [top, ...rest] = prev
+          // Re-sort the unseen tail to match the server's canonical ranked order
+          const serverOrder = new Map(state.movies.map((m, i) => [m.imdbID, i]))
+          const sortedRest = [...rest, ...newMovies].sort(
+            (a, b) => (serverOrder.get(a.imdbID) ?? 999) - (serverOrder.get(b.imdbID) ?? 999)
+          )
+          return [top, ...sortedRest]
+        })
+        return
+      }
+
+      if (state.status === RoomStatus.Results && phase !== LocalPhase.Results) {
+        if (!resultsLoadedRef.current) {
+          resultsLoadedRef.current = true
+          getRoomResults(code!)
+            .then(setResults)
+            .catch(() => {})
+        }
+        setLocalPhase(LocalPhase.Results)
+      }
+    },
+    [code]
+  )
+
+  useEffect(() => {
+    applyServerStateRef.current = applyServerState
+  }, [applyServerState])
 
   useEffect(() => {
     if (!user || !code) return
@@ -113,27 +180,39 @@ const Room: FC = () => {
       try {
         const state = await getRoomState(code)
         applyServerStateRef.current(state)
-      } catch {}
+      } catch {
+        // getRoomState failure is non-fatal; socket will deliver the state
+      }
     }
     init()
   }, [user, code])
 
-  useRoomSocket(code, (state) => applyServerStateRef.current(state))
+  useRoomSocket(
+    code,
+    (state) => applyServerStateRef.current(state),
+    (rankings) => {
+      setMovieRankings(rankings)
+      setVotingMovies((prev) => {
+        if (prev.length <= 1) return prev
+        const [top, ...rest] = prev
+        const scoreMap = new Map(rankings.map((r) => [r.imdbID, r.score]))
+        return [
+          top,
+          ...rest.sort((a, b) => (scoreMap.get(b.imdbID) ?? 0) - (scoreMap.get(a.imdbID) ?? 0)),
+        ]
+      })
+    }
+  )
 
   const handleStart = async () => {
     if (!code) return
     setIsStarting(true)
     setStartError('')
-    const filters: MovieFilters = {
-      types: selectedTypes.length > 0 ? selectedTypes : undefined,
-      genres: selectedGenres.length > 0 ? selectedGenres : undefined,
-      minRating: minRating !== '' ? parseFloat(minRating) : undefined,
-      maxRating: maxRating !== '' ? parseFloat(maxRating) : undefined,
-      startYear: minYear !== '' ? parseInt(minYear) : undefined,
-      endYear: maxYear !== '' ? parseInt(maxYear) : undefined,
-    }
     try {
-      await startRoom(code, filters)
+      await startRoom(
+        code,
+        buildRoomFilters({ selectedTypes, selectedGenres, minYear, maxYear, minRating, maxRating })
+      )
     } catch (e) {
       setStartError((e as Error).message)
     } finally {
@@ -141,29 +220,32 @@ const Room: FC = () => {
     }
   }
 
-  const handleEndVoting = useCallback(async () => {
-    if (!code || localPhaseRef.current === 'done') return
-    setLocalPhase('done')
-    await finishVoting(code).catch(() => {})
-  }, [code])
+  const handleResetFilters = () => {
+    setSelectedTypes([])
+    setSelectedGenres([])
+    setMinYear('')
+    setMaxYear('')
+    setMinRating('')
+    setMaxRating('')
+  }
 
   if (!user) return null
 
   const isHost = roomState?.hostId === user.sub
-  const totalCards = allMoviesRef.current.length
+  const totalCards = allMovies.length
   const swipedCount = totalCards - votingMovies.length
 
   const subtitle =
-    localPhase === 'results'
+    localPhase === LocalPhase.Results
       ? 'session complete'
-      : localPhase === 'voting' || localPhase === 'done'
+      : localPhase === LocalPhase.Voting || localPhase === LocalPhase.Done
         ? 'swiping together'
         : 'group session'
 
   const title =
-    localPhase === 'results'
+    localPhase === LocalPhase.Results
       ? 'Group Picks'
-      : localPhase === 'voting' || localPhase === 'done'
+      : localPhase === LocalPhase.Voting || localPhase === LocalPhase.Done
         ? 'Pick Your Movie'
         : 'Room'
 
@@ -187,10 +269,13 @@ const Room: FC = () => {
           </h1>
         </div>
 
-        {localPhase !== 'results' && code && (
+        {localPhase !== LocalPhase.Results && code && (
           <div
             className="flex items-center gap-3 px-5 py-2 rounded-2xl"
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)' }}
+            style={{
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.12)',
+            }}
           >
             <span className="font-[Poppins] text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
               room code
@@ -222,14 +307,9 @@ const Room: FC = () => {
           </div>
         )}
 
-        {!error && localPhase === 'joining' && (
-          <div
-            className="w-10 h-10 rounded-full border-2 animate-spin"
-            style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: 'transparent' }}
-          />
-        )}
+        {!error && localPhase === LocalPhase.Joining && <Spinner />}
 
-        {!error && localPhase === 'lobby' && roomState && (
+        {!error && localPhase === LocalPhase.Lobby && roomState && (
           <LobbyView
             roomState={roomState}
             isHost={isHost}
@@ -241,14 +321,14 @@ const Room: FC = () => {
             maxYear={maxYear}
             minRating={minRating}
             maxRating={maxRating}
-            onToggleType={(t) =>
+            onToggleType={(type) =>
               setSelectedTypes((prev) =>
-                prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t],
+                prev.includes(type) ? prev.filter((item) => item !== type) : [...prev, type]
               )
             }
-            onToggleGenre={(g) =>
+            onToggleGenre={(genre) =>
               setSelectedGenres((prev) =>
-                prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g],
+                prev.includes(genre) ? prev.filter((item) => item !== genre) : [...prev, genre]
               )
             }
             onSetMinYear={setMinYear}
@@ -256,18 +336,11 @@ const Room: FC = () => {
             onSetMinRating={setMinRating}
             onSetMaxRating={setMaxRating}
             onStart={handleStart}
-            onResetFilters={() => {
-              setSelectedTypes([])
-              setSelectedGenres([])
-              setMinYear('')
-              setMaxYear('')
-              setMinRating('')
-              setMaxRating('')
-            }}
+            onResetFilters={handleResetFilters}
           />
         )}
 
-        {!error && localPhase === 'voting' && (
+        {!error && localPhase === LocalPhase.Voting && (
           <>
             {votingMovies.length > 0 ? (
               <>
@@ -288,13 +361,22 @@ const Room: FC = () => {
                   onDismiss={dismiss}
                   onEndSession={handleEndVoting}
                 />
-                <p className="font-[Poppins] text-[12px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                <p
+                  className="font-[Poppins] text-[12px]"
+                  style={{ color: 'rgba(255,255,255,0.3)' }}
+                >
                   {swipedCount} / {totalCards} swiped
                 </p>
+                {movieRankings.length > 0 && (
+                  <LiveRecsPanel rankings={movieRankings} allMovies={allMovies} />
+                )}
               </>
             ) : (
               <div className="flex flex-col items-center gap-4">
-                <p className="font-[Poppins] text-[15px]" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                <p
+                  className="font-[Poppins] text-[15px]"
+                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                >
                   No movies to swipe
                 </p>
                 <Button variant="ghost" onClick={() => navigate(ROUTES.DASHBOARD)}>
@@ -305,11 +387,11 @@ const Room: FC = () => {
           </>
         )}
 
-        {!error && localPhase === 'done' && roomState && (
+        {!error && localPhase === LocalPhase.Done && roomState && (
           <WaitingResultsView participants={roomState.participants} />
         )}
 
-        {!error && localPhase === 'results' && results && roomState && (
+        {!error && localPhase === LocalPhase.Results && results && roomState && (
           <ResultsView
             results={results}
             participants={roomState.participants}
@@ -321,284 +403,29 @@ const Room: FC = () => {
   )
 }
 
-interface LobbyViewProps {
-  roomState: RoomState
-  isHost: boolean
-  isStarting: boolean
-  startError: string
-  selectedTypes: string[]
-  selectedGenres: string[]
-  minYear: string
-  maxYear: string
-  minRating: string
-  maxRating: string
-  onToggleType: (t: string) => void
-  onToggleGenre: (g: string) => void
-  onSetMinYear: (v: string) => void
-  onSetMaxYear: (v: string) => void
-  onSetMinRating: (v: string) => void
-  onSetMaxRating: (v: string) => void
-  onStart: () => void
-  onResetFilters: () => void
-}
-
-const LobbyView: FC<LobbyViewProps> = ({
-  roomState,
-  isHost,
-  isStarting,
-  startError,
+function buildRoomFilters({
   selectedTypes,
   selectedGenres,
   minYear,
   maxYear,
   minRating,
   maxRating,
-  onToggleType,
-  onToggleGenre,
-  onSetMinYear,
-  onSetMaxYear,
-  onSetMinRating,
-  onSetMaxRating,
-  onStart,
-  onResetFilters,
-}) => (
-  <div className="w-full max-w-lg flex flex-col items-center gap-6">
-    <div
-      className="w-full rounded-3xl p-5"
-      style={{
-        background: 'rgba(255,255,255,0.05)',
-        border: '1px solid rgba(255,255,255,0.10)',
-        backdropFilter: 'blur(16px)',
-      }}
-    >
-      <p
-        className="font-[Poppins] text-[12px] font-semibold uppercase tracking-widest mb-4"
-        style={{ color: 'rgba(255,255,255,0.35)' }}
-      >
-        Participants ({roomState.participants.length})
-      </p>
-      <div className="flex flex-col gap-2">
-        {roomState.participants.map((p) => (
-          <div key={p.userId} className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {p.avatar ? (
-                <img
-                  src={p.avatar}
-                  alt=""
-                  className="w-7 h-7 rounded-full object-cover flex-shrink-0"
-                />
-              ) : (
-                <div
-                  className="w-7 h-7 rounded-full flex items-center justify-center font-[Poppins] font-semibold text-[11px] flex-shrink-0"
-                  style={{ background: 'linear-gradient(to bottom, #CE9FFC, #7367F0)' }}
-                >
-                  {(p.name || p.userEmail).charAt(0).toUpperCase()}
-                </div>
-              )}
-              <span className="font-[Poppins] text-[13px] text-white">
-                {p.name || p.userEmail}
-              </span>
-            </div>
-            {p.userId === roomState.hostId && (
-              <span
-                className="font-[Poppins] text-[10px] px-2 py-0.5 rounded-lg"
-                style={{ background: 'rgba(206,159,252,0.15)', color: '#CE9FFC' }}
-              >
-                host
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-
-    {isHost ? (
-      <>
-        {startError && (
-          <p
-            className="font-[Poppins] text-[13px] text-center max-w-sm"
-            style={{ color: '#ff7c7c' }}
-          >
-            {startError}
-          </p>
-        )}
-        <FilterPanel
-          isLoading={isStarting}
-          selectedTypes={selectedTypes}
-          selectedGenres={selectedGenres}
-          minYear={minYear}
-          maxYear={maxYear}
-          minRating={minRating}
-          maxRating={maxRating}
-          onToggleType={onToggleType}
-          onToggleGenre={onToggleGenre}
-          onSetMinYear={onSetMinYear}
-          onSetMaxYear={onSetMaxYear}
-          onSetMinRating={onSetMinRating}
-          onSetMaxRating={onSetMaxRating}
-          onStartSwiping={onStart}
-          onResetFilters={onResetFilters}
-          startLabel={isStarting ? 'Loading movies…' : 'Start Voting'}
-        />
-      </>
-    ) : (
-      <div className="flex flex-col items-center gap-3">
-        <div
-          className="w-8 h-8 rounded-full border-2 animate-spin"
-          style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: 'transparent' }}
-        />
-        <p className="font-[Poppins] text-[14px]" style={{ color: 'rgba(255,255,255,0.5)' }}>
-          Waiting for host to start…
-        </p>
-      </div>
-    )}
-  </div>
-)
-
-interface WaitingResultsViewProps {
-  participants: RoomState['participants']
+}: {
+  selectedTypes: string[]
+  selectedGenres: string[]
+  minYear: string
+  maxYear: string
+  minRating: string
+  maxRating: string
+}): MovieFilters {
+  return {
+    types: selectedTypes.length > 0 ? selectedTypes : undefined,
+    genres: selectedGenres.length > 0 ? selectedGenres : undefined,
+    minRating: minRating !== '' ? parseFloat(minRating) : undefined,
+    maxRating: maxRating !== '' ? parseFloat(maxRating) : undefined,
+    startYear: minYear !== '' ? parseInt(minYear) : undefined,
+    endYear: maxYear !== '' ? parseInt(maxYear) : undefined,
+  }
 }
-
-const WaitingResultsView: FC<WaitingResultsViewProps> = ({ participants }) => {
-  const doneCount = participants.filter((p) => p.hasFinished).length
-  return (
-    <div className="flex flex-col items-center gap-4">
-      <div
-        className="w-10 h-10 rounded-full border-2 animate-spin"
-        style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: 'transparent' }}
-      />
-      <p className="font-[Poppins] text-[15px] text-white">Waiting for everyone…</p>
-      <p className="font-[Poppins] text-[13px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
-        {doneCount} / {participants.length} finished
-      </p>
-    </div>
-  )
-}
-
-interface ResultsViewProps {
-  results: RoomResults
-  participants: RoomState['participants']
-  onDashboard: () => void
-}
-
-const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDashboard }) => {
-  const total = participants.length
-  const matches = results.movies.filter((m) => m.likeCount === total)
-  const others = results.movies.filter((m) => m.likeCount < total && m.likeCount > 0)
-
-  return (
-    <div className="w-full max-w-lg flex flex-col items-center gap-6">
-      <div className="flex gap-6 font-[Poppins] text-[14px]">
-        <span style={{ color: '#4ade80' }}>★ {matches.length} everyone liked</span>
-        <span style={{ color: 'rgba(255,255,255,0.35)' }}>{results.movies.length} total picks</span>
-      </div>
-
-      {results.movies.length === 0 ? (
-        <p className="font-[Poppins] text-[15px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          No one liked the same movies
-        </p>
-      ) : (
-        <div
-          className="w-full rounded-3xl p-5"
-          style={{
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.10)',
-            backdropFilter: 'blur(16px)',
-          }}
-        >
-          {matches.length > 0 && (
-            <>
-              <p
-                className="font-[Poppins] text-[12px] font-semibold uppercase tracking-widest mb-3"
-                style={{ color: '#4ade80' }}
-              >
-                Everyone liked
-              </p>
-              <div className="grid grid-cols-3 gap-3 mb-5">
-                {matches.map(({ movie, likeCount }) => (
-                  <MovieResultCard key={movie.imdbID} movie={movie} likeCount={likeCount} total={total} />
-                ))}
-              </div>
-            </>
-          )}
-
-          {others.length > 0 && (
-            <>
-              <p
-                className="font-[Poppins] text-[12px] font-semibold uppercase tracking-widest mb-3"
-                style={{ color: 'rgba(255,255,255,0.35)' }}
-              >
-                Some liked
-              </p>
-              <div className="grid grid-cols-3 gap-3">
-                {others.map(({ movie, likeCount }) => (
-                  <MovieResultCard key={movie.imdbID} movie={movie} likeCount={likeCount} total={total} />
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      )}
-
-      <Button onClick={onDashboard} style={{ paddingLeft: 32, paddingRight: 32 }}>
-        Back to Dashboard
-      </Button>
-    </div>
-  )
-}
-
-const MovieResultCard: FC<{ movie: Movie; likeCount: number; total: number }> = ({
-  movie,
-  likeCount,
-  total,
-}) => (
-  <div className="flex flex-col gap-1.5">
-    <div className="relative rounded-xl overflow-hidden" style={{ aspectRatio: '2/3' }}>
-      <img src={movie.Poster} alt={movie.Title} className="w-full h-full object-cover" />
-      <div
-        className="absolute inset-0"
-        style={{ background: 'linear-gradient(to top, rgba(10,5,25,0.9) 0%, transparent 55%)' }}
-      />
-      <div
-        className="absolute bottom-1.5 left-1.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg"
-        style={{
-          background: likeCount === total ? 'rgba(74,222,128,0.25)' : 'rgba(0,0,0,0.55)',
-          backdropFilter: 'blur(4px)',
-        }}
-      >
-        <span style={{ color: likeCount === total ? '#4ade80' : 'rgba(255,255,255,0.5)', fontSize: 9 }}>
-          ♥
-        </span>
-        <span
-          className="font-[Poppins] font-semibold"
-          style={{ fontSize: 10, color: likeCount === total ? '#4ade80' : 'rgba(255,255,255,0.7)' }}
-        >
-          {likeCount}/{total}
-        </span>
-      </div>
-      {movie.imdbRating !== 'N/A' && (
-        <div
-          className="absolute bottom-1.5 right-1.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg"
-          style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}
-        >
-          <span style={{ color: '#facc15', fontSize: 9 }}>★</span>
-          <span className="font-[Poppins] font-semibold text-white" style={{ fontSize: 10 }}>
-            {movie.imdbRating}
-          </span>
-        </div>
-      )}
-    </div>
-    <p
-      className="font-[Poppins] text-white font-semibold leading-tight"
-      style={{ fontSize: 12 }}
-      title={movie.Title}
-    >
-      {movie.Title.length > 18 ? movie.Title.slice(0, 16) + '…' : movie.Title}
-    </p>
-    <p className="font-[Poppins]" style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
-      {movie.Year}
-    </p>
-  </div>
-)
 
 export default Room

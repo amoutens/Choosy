@@ -6,6 +6,7 @@ import { RoomVote } from './room-vote.entity';
 import { RoomsService } from './rooms.service';
 import { RoomsController } from './rooms.controller';
 import { RoomsGateway } from './rooms.gateway';
+import { RecommendationService } from './recommendation.service';
 import { MoviesModule } from '../movies/movies.module';
 import { UsersModule } from '../users/users.module';
 
@@ -16,6 +17,6 @@ import { UsersModule } from '../users/users.module';
     UsersModule,
   ],
   controllers: [RoomsController],
-  providers: [RoomsService, RoomsGateway],
+  providers: [RoomsService, RoomsGateway, RecommendationService],
 })
 export class RoomsModule {}

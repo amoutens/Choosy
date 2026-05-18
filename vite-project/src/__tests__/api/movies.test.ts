@@ -47,7 +47,7 @@ describe('fetchMovies', () => {
       expect.stringContaining('/movies'),
       expect.objectContaining({
         headers: { Authorization: 'Bearer test-jwt' },
-      }),
+      })
     )
   })
 

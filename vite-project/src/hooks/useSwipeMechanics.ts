@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Movie } from '../api/movies.types'
 import { SWIPE_THRESHOLD } from '../components/swipe/swipeConfig'
 
@@ -20,9 +20,15 @@ export function useSwipeMechanics({ movies, onLike, onDislike, onRemoveTop }: Op
   const onLikeRef = useRef(onLike)
   const onDislikeRef = useRef(onDislike)
   const onRemoveTopRef = useRef(onRemoveTop)
-  onLikeRef.current = onLike
-  onDislikeRef.current = onDislike
-  onRemoveTopRef.current = onRemoveTop
+  useEffect(() => {
+    onLikeRef.current = onLike
+  })
+  useEffect(() => {
+    onDislikeRef.current = onDislike
+  })
+  useEffect(() => {
+    onRemoveTopRef.current = onRemoveTop
+  })
 
   const dismiss = useCallback(
     (direction: 'left' | 'right') => {
@@ -37,7 +43,7 @@ export function useSwipeMechanics({ movies, onLike, onDislike, onRemoveTop }: Op
         setDismissed(null)
       }, 360)
     },
-    [dismissed, movies],
+    [dismissed, movies]
   )
 
   const onPointerDown = (e: React.PointerEvent) => {

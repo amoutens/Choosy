@@ -1,5 +1,11 @@
 import { Movie, MovieFilters } from './movies.types'
 
+export enum RoomStatus {
+  Waiting = 'waiting',
+  Voting = 'voting',
+  Results = 'results',
+}
+
 export interface Participant {
   userId: string
   userEmail: string
@@ -12,7 +18,7 @@ export interface RoomState {
   id: string
   code: string
   hostId: string
-  status: 'waiting' | 'voting' | 'results'
+  status: RoomStatus
   filters: MovieFilters
   movies: Movie[]
   participants: Participant[]
@@ -21,8 +27,11 @@ export interface RoomState {
 
 export interface MovieResult {
   movie: Movie
-  likedBy: string[]
+  score: number
+  avgScore: number
+  minScore: number
   likeCount: number
+  alpha: number
 }
 
 export interface RoomResults {
