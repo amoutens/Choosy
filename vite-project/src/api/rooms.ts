@@ -52,7 +52,7 @@ export async function submitVote(
   code: string,
   movieId: string,
   vote: 'like' | 'dislike',
-  movieData: Movie,
+  movieData: Movie
 ): Promise<void> {
   await fetch(`${API_BASE}/rooms/${code}/vote`, {
     method: 'POST',

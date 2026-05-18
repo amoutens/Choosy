@@ -17,21 +17,15 @@ export function decodeToken(token: string): TokenPayload | null {
 
 export function useRequireAuth(): TokenPayload | null {
   const navigate = useNavigate()
-  const [user, setUser] = useState<TokenPayload | null>(null)
+  const [user] = useState<TokenPayload | null>(() => {
+    const token = localStorage.getItem('token')
+    if (!token) return null
+    return decodeToken(token)
+  })
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      navigate(ROUTES.LOGIN)
-      return
-    }
-    const payload = decodeToken(token)
-    if (!payload) {
-      navigate(ROUTES.LOGIN)
-      return
-    }
-    setUser(payload)
-  }, [navigate])
+    if (!user) navigate(ROUTES.LOGIN)
+  }, [user, navigate])
 
   return user
 }

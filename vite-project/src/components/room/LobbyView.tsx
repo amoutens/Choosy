@@ -64,7 +64,11 @@ export const LobbyView: FC<LobbyViewProps> = ({
           <div key={participant.userId} className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {participant.avatar ? (
-                <img src={participant.avatar} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+                <img
+                  src={participant.avatar}
+                  alt=""
+                  className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+                />
               ) : (
                 <div
                   className="w-7 h-7 rounded-full flex items-center justify-center font-[Poppins] font-semibold text-[11px] flex-shrink-0"
@@ -93,7 +97,10 @@ export const LobbyView: FC<LobbyViewProps> = ({
     {isHost ? (
       <>
         {startError && (
-          <p className="font-[Poppins] text-[13px] text-center max-w-sm" style={{ color: '#ff7c7c' }}>
+          <p
+            className="font-[Poppins] text-[13px] text-center max-w-sm"
+            style={{ color: '#ff7c7c' }}
+          >
             {startError}
           </p>
         )}

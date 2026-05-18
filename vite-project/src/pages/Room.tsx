@@ -65,19 +65,28 @@ const Room: FC = () => {
   const [minRating, setMinRating] = useState('')
   const [maxRating, setMaxRating] = useState('')
 
-  const { dismissed, showPlot, rotation, translateX, likeOpacity, nopeOpacity, dismiss, reset, ...pointers } =
-    useSwipeMechanics({
-      movies: votingMovies,
-      onLike: (id) => {
-        const movie = allMoviesRef.current.find((m) => m.imdbID === id)
-        if (movie && code) submitVote(code, id, 'like', movie).catch(() => {})
-      },
-      onDislike: (id) => {
-        const movie = allMoviesRef.current.find((m) => m.imdbID === id)
-        if (movie && code) submitVote(code, id, 'dislike', movie).catch(() => {})
-      },
-      onRemoveTop: () => setVotingMovies((prev) => prev.slice(1)),
-    })
+  const {
+    dismissed,
+    showPlot,
+    rotation,
+    translateX,
+    likeOpacity,
+    nopeOpacity,
+    dismiss,
+    reset,
+    ...pointers
+  } = useSwipeMechanics({
+    movies: votingMovies,
+    onLike: (id) => {
+      const movie = allMoviesRef.current.find((m) => m.imdbID === id)
+      if (movie && code) submitVote(code, id, 'like', movie).catch(() => {})
+    },
+    onDislike: (id) => {
+      const movie = allMoviesRef.current.find((m) => m.imdbID === id)
+      if (movie && code) submitVote(code, id, 'dislike', movie).catch(() => {})
+    },
+    onRemoveTop: () => setVotingMovies((prev) => prev.slice(1)),
+  })
 
   useEffect(() => {
     localPhaseRef.current = localPhase
@@ -93,7 +102,11 @@ const Room: FC = () => {
   }, [code])
 
   useEffect(() => {
-    if (votingStartedRef.current && votingMovies.length === 0 && localPhaseRef.current === LocalPhase.Voting) {
+    if (
+      votingStartedRef.current &&
+      votingMovies.length === 0 &&
+      localPhaseRef.current === LocalPhase.Voting
+    ) {
       handleEndVoting()
     }
   }, [votingMovies.length, handleEndVoting])
@@ -131,7 +144,7 @@ const Room: FC = () => {
           // Re-sort the unseen tail to match the server's canonical ranked order
           const serverOrder = new Map(state.movies.map((m, i) => [m.imdbID, i]))
           const sortedRest = [...rest, ...newMovies].sort(
-            (a, b) => (serverOrder.get(a.imdbID) ?? 999) - (serverOrder.get(b.imdbID) ?? 999),
+            (a, b) => (serverOrder.get(a.imdbID) ?? 999) - (serverOrder.get(b.imdbID) ?? 999)
           )
           return [top, ...sortedRest]
         })
@@ -141,12 +154,14 @@ const Room: FC = () => {
       if (state.status === RoomStatus.Results && phase !== LocalPhase.Results) {
         if (!resultsLoadedRef.current) {
           resultsLoadedRef.current = true
-          getRoomResults(code!).then(setResults).catch(() => {})
+          getRoomResults(code!)
+            .then(setResults)
+            .catch(() => {})
         }
         setLocalPhase(LocalPhase.Results)
       }
     },
-    [code],
+    [code]
   )
 
   useEffect(() => {
@@ -165,7 +180,7 @@ const Room: FC = () => {
       try {
         const state = await getRoomState(code)
         applyServerStateRef.current(state)
-      } catch (_) {
+      } catch {
         // getRoomState failure is non-fatal; socket will deliver the state
       }
     }
@@ -181,9 +196,12 @@ const Room: FC = () => {
         if (prev.length <= 1) return prev
         const [top, ...rest] = prev
         const scoreMap = new Map(rankings.map((r) => [r.imdbID, r.score]))
-        return [top, ...rest.sort((a, b) => (scoreMap.get(b.imdbID) ?? 0) - (scoreMap.get(a.imdbID) ?? 0))]
+        return [
+          top,
+          ...rest.sort((a, b) => (scoreMap.get(b.imdbID) ?? 0) - (scoreMap.get(a.imdbID) ?? 0)),
+        ]
       })
-    },
+    }
   )
 
   const handleStart = async () => {
@@ -191,7 +209,10 @@ const Room: FC = () => {
     setIsStarting(true)
     setStartError('')
     try {
-      await startRoom(code, buildRoomFilters({ selectedTypes, selectedGenres, minYear, maxYear, minRating, maxRating }))
+      await startRoom(
+        code,
+        buildRoomFilters({ selectedTypes, selectedGenres, minYear, maxYear, minRating, maxRating })
+      )
     } catch (e) {
       setStartError((e as Error).message)
     } finally {

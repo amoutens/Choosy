@@ -134,12 +134,12 @@ const Swipe: FC = () => {
             maxRating={maxRating}
             onToggleType={(t) =>
               setSelectedTypes((prev) =>
-                prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t],
+                prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
               )
             }
             onToggleGenre={(g) =>
               setSelectedGenres((prev) =>
-                prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g],
+                prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]
               )
             }
             onSetMinYear={setMinYear}
@@ -155,7 +155,10 @@ const Swipe: FC = () => {
           <>
             {movies.length === 0 && noMoreMovies ? (
               <div className="flex flex-col items-center gap-4">
-                <p className="font-[Poppins] text-[15px]" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                <p
+                  className="font-[Poppins] text-[15px]"
+                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                >
                   No movies found for these filters
                 </p>
                 <button
@@ -172,7 +175,10 @@ const Swipe: FC = () => {
                   className="w-10 h-10 rounded-full border-2 animate-spin"
                   style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: 'transparent' }}
                 />
-                <p className="font-[Poppins] text-[14px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                <p
+                  className="font-[Poppins] text-[14px]"
+                  style={{ color: 'rgba(255,255,255,0.4)' }}
+                >
                   Loading movies…
                 </p>
               </div>

@@ -48,9 +48,15 @@ describe('useMovieFetcher', () => {
     mockFetchMovies.mockResolvedValue({ movies: [], nextPageToken: null })
     const { result } = renderHook(() => useMovieFetcher())
 
-    await act(async () => { await result.current.fetchMore() })
-    await act(async () => { await result.current.fetchMore() })
-    await act(async () => { await result.current.fetchMore() })
+    await act(async () => {
+      await result.current.fetchMore()
+    })
+    await act(async () => {
+      await result.current.fetchMore()
+    })
+    await act(async () => {
+      await result.current.fetchMore()
+    })
 
     expect(result.current.noMoreMovies).toBe(true)
     expect(result.current.needsMore('swiping')).toBe(false)
@@ -92,8 +98,12 @@ describe('useMovieFetcher', () => {
 
     const { result } = renderHook(() => useMovieFetcher())
 
-    await act(async () => { await result.current.fetchMore() })
-    await act(async () => { await result.current.fetchMore() })
+    await act(async () => {
+      await result.current.fetchMore()
+    })
+    await act(async () => {
+      await result.current.fetchMore()
+    })
 
     const ids = result.current.movies.map((m) => m.imdbID)
     expect(ids).toEqual(expect.arrayContaining(['tt001', 'tt002']))
@@ -104,13 +114,19 @@ describe('useMovieFetcher', () => {
     mockFetchMovies.mockResolvedValue({ movies: [], nextPageToken: null })
     const { result } = renderHook(() => useMovieFetcher())
 
-    await act(async () => { await result.current.fetchMore() })
+    await act(async () => {
+      await result.current.fetchMore()
+    })
     expect(result.current.noMoreMovies).toBe(false)
 
-    await act(async () => { await result.current.fetchMore() })
+    await act(async () => {
+      await result.current.fetchMore()
+    })
     expect(result.current.noMoreMovies).toBe(false)
 
-    await act(async () => { await result.current.fetchMore() })
+    await act(async () => {
+      await result.current.fetchMore()
+    })
     expect(result.current.noMoreMovies).toBe(true)
   })
 
@@ -125,11 +141,21 @@ describe('useMovieFetcher', () => {
 
     const { result } = renderHook(() => useMovieFetcher())
 
-    await act(async () => { await result.current.fetchMore() })
-    await act(async () => { await result.current.fetchMore() })
-    await act(async () => { await result.current.fetchMore() })
-    await act(async () => { await result.current.fetchMore() })
-    await act(async () => { await result.current.fetchMore() })
+    await act(async () => {
+      await result.current.fetchMore()
+    })
+    await act(async () => {
+      await result.current.fetchMore()
+    })
+    await act(async () => {
+      await result.current.fetchMore()
+    })
+    await act(async () => {
+      await result.current.fetchMore()
+    })
+    await act(async () => {
+      await result.current.fetchMore()
+    })
 
     expect(result.current.noMoreMovies).toBe(false)
   })
@@ -138,7 +164,9 @@ describe('useMovieFetcher', () => {
     mockFetchMovies.mockResolvedValueOnce({ movies: [makeMovie('tt001')], nextPageToken: null })
     const { result } = renderHook(() => useMovieFetcher())
 
-    await act(async () => { await result.current.fetchMore() })
+    await act(async () => {
+      await result.current.fetchMore()
+    })
     expect(result.current.movies).toHaveLength(1)
 
     act(() => {
@@ -157,11 +185,17 @@ describe('useMovieFetcher', () => {
 
     const { result } = renderHook(() => useMovieFetcher())
 
-    await act(async () => { await result.current.fetchMore() })
+    await act(async () => {
+      await result.current.fetchMore()
+    })
 
-    act(() => { result.current.resetSession({}) })
+    act(() => {
+      result.current.resetSession({})
+    })
 
-    await act(async () => { await result.current.fetchMore() })
+    await act(async () => {
+      await result.current.fetchMore()
+    })
 
     expect(result.current.movies).toHaveLength(1)
   })

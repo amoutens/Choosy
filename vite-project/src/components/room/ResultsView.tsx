@@ -12,7 +12,10 @@ interface SectionToggleProps {
 
 const SectionToggle: FC<SectionToggleProps> = ({ label, color, open, onToggle }) => (
   <button className="flex items-center gap-2 w-full mb-3" onClick={onToggle}>
-    <p className="font-[Poppins] text-[12px] font-semibold uppercase tracking-widest" style={{ color }}>
+    <p
+      className="font-[Poppins] text-[12px] font-semibold uppercase tracking-widest"
+      style={{ color }}
+    >
       {label}
     </p>
     <span
@@ -73,7 +76,9 @@ const MovieResultCard: FC<MovieResultCardProps> = ({ movie, likeCount, total, sc
             backdropFilter: 'blur(4px)',
           }}
         >
-          <span style={{ color: isMatch ? '#4ade80' : 'rgba(255,255,255,0.5)', fontSize: 9 }}>♥</span>
+          <span style={{ color: isMatch ? '#4ade80' : 'rgba(255,255,255,0.5)', fontSize: 9 }}>
+            ♥
+          </span>
           <span
             className="font-[Poppins] font-semibold"
             style={{ fontSize: 10, color: isMatch ? '#4ade80' : 'rgba(255,255,255,0.7)' }}
@@ -171,7 +176,13 @@ export const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDas
               {showEveryoneLiked && (
                 <div className="grid grid-cols-3 gap-3">
                   {everyoneLiked.map(({ movie, likeCount, score }) => (
-                    <MovieResultCard key={movie.imdbID} movie={movie} likeCount={likeCount} total={total} score={score} />
+                    <MovieResultCard
+                      key={movie.imdbID}
+                      movie={movie}
+                      likeCount={likeCount}
+                      total={total}
+                      score={score}
+                    />
                   ))}
                 </div>
               )}
@@ -189,7 +200,13 @@ export const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDas
               {showSomeLiked && (
                 <div className="grid grid-cols-3 gap-3">
                   {someLiked.map(({ movie, likeCount, score }) => (
-                    <MovieResultCard key={movie.imdbID} movie={movie} likeCount={likeCount} total={total} score={score} />
+                    <MovieResultCard
+                      key={movie.imdbID}
+                      movie={movie}
+                      likeCount={likeCount}
+                      total={total}
+                      score={score}
+                    />
                   ))}
                 </div>
               )}

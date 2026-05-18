@@ -5,7 +5,7 @@ export type { Movie, MovieFilters, MoviesResponse } from './movies.types'
 
 export async function fetchMovies(
   filters: MovieFilters = {},
-  pageToken?: string,
+  pageToken?: string
 ): Promise<MoviesResponse> {
   const token = localStorage.getItem('token')
   const params = new URLSearchParams()

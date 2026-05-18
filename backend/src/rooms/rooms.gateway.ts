@@ -25,7 +25,7 @@ export class RoomsGateway {
     @ConnectedSocket() client: Socket,
     @MessageBody() code: string,
   ): void {
-    client.join(code);
+    void client.join(code);
   }
 
   emitRoomUpdated(code: string, state: RoomState): void {
