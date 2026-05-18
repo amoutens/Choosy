@@ -21,6 +21,15 @@ export async function fetchMyProfile(): Promise<UserProfile> {
   return res.json() as Promise<UserProfile>
 }
 
+export async function updateName(name: string): Promise<void> {
+  const res = await fetch(`${API}/users/me`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: JSON.stringify({ name }),
+  })
+  if (!res.ok) throw new Error('Failed to update name')
+}
+
 export async function uploadAvatar(dataUrl: string): Promise<void> {
   const res = await fetch(`${API}/users/me/avatar`, {
     method: 'PATCH',

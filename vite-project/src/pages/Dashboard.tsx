@@ -11,10 +11,7 @@ import FilmIcon from '../assets/icons/FilmIcon'
 import FilmIconSecondary from '../assets/icons/FilmIconSecondary'
 import { useRequireAuth, logout } from '../lib/token'
 import { ROUTES } from '../lib/routes'
-
-function generateRoomCode() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase()
-}
+import { createRoom } from '../api/rooms'
 
 const Dashboard: FC = () => {
   const navigate = useNavigate()
@@ -22,12 +19,21 @@ const Dashboard: FC = () => {
 
   const [showCreate, setShowCreate] = useState(false)
   const [createdCode, setCreatedCode] = useState('')
+  const [isCreating, setIsCreating] = useState(false)
   const [showJoin, setShowJoin] = useState(false)
   const [joinCode, setJoinCode] = useState('')
 
-  const handleCreateRoom = () => {
-    setCreatedCode(generateRoomCode())
-    setShowCreate(true)
+  const handleCreateRoom = async () => {
+    setIsCreating(true)
+    try {
+      const { code } = await createRoom()
+      setCreatedCode(code)
+      setShowCreate(true)
+    } catch {
+      // silently ignore — user stays on dashboard
+    } finally {
+      setIsCreating(false)
+    }
   }
 
   if (!user) return null
@@ -67,7 +73,7 @@ const Dashboard: FC = () => {
             title="Create Room"
             description="Start a new session and invite friends to vote"
             onAction={handleCreateRoom}
-            actionLabel="Create"
+            actionLabel={isCreating ? 'Creating…' : 'Create'}
           />
 
           <RoomCard
