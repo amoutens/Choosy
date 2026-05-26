@@ -1,4 +1,5 @@
 import { FC } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Movie } from '../../api/movies.types'
 import { MovieCard } from './MovieCard'
 
@@ -65,85 +66,88 @@ export const MovieCardStack: FC<MovieCardStackProps> = ({
   onPointerUp,
   onDismiss,
   onEndSession,
-}) => (
-  <>
-    <div className="relative select-none" style={{ width: 310, height: 450 }}>
-      {nextNext && (
-        <div
-          className="absolute inset-0 rounded-3xl"
-          style={{
-            transform: 'scale(0.88) translateY(22px)',
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            zIndex: 1,
-          }}
-        />
-      )}
-      {next && (
-        <div
-          className="absolute inset-0 rounded-3xl overflow-hidden"
-          style={{ transform: 'scale(0.94) translateY(11px)', zIndex: 2 }}
-        >
-          <img
-            src={next.Poster}
-            alt={next.Title}
-            className="w-full h-full object-cover"
-            draggable={false}
-          />
+}) => {
+  const { t } = useTranslation()
+  return (
+    <>
+      <div className="relative select-none" style={{ width: 310, height: 450 }}>
+        {nextNext && (
           <div
-            className="absolute inset-0"
+            className="absolute inset-0 rounded-3xl"
             style={{
-              background: 'linear-gradient(to top, rgba(10,5,25,0.85) 0%, transparent 60%)',
+              transform: 'scale(0.88) translateY(22px)',
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              zIndex: 1,
             }}
           />
-        </div>
-      )}
-      {top && (
-        <MovieCard
-          movie={top}
-          translateX={translateX}
-          rotation={rotation}
-          isDragging={isDragging}
-          dismissed={dismissed}
-          showPlot={showPlot}
-          likeOpacity={likeOpacity}
-          nopeOpacity={nopeOpacity}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-        />
-      )}
-    </div>
+        )}
+        {next && (
+          <div
+            className="absolute inset-0 rounded-3xl overflow-hidden"
+            style={{ transform: 'scale(0.94) translateY(11px)', zIndex: 2 }}
+          >
+            <img
+              src={next.Poster}
+              alt={next.Title}
+              className="w-full h-full object-cover"
+              draggable={false}
+            />
+            <div
+              className="absolute inset-0"
+              style={{
+                background: 'linear-gradient(to top, rgba(10,5,25,0.85) 0%, transparent 60%)',
+              }}
+            />
+          </div>
+        )}
+        {top && (
+          <MovieCard
+            movie={top}
+            translateX={translateX}
+            rotation={rotation}
+            isDragging={isDragging}
+            dismissed={dismissed}
+            showPlot={showPlot}
+            likeOpacity={likeOpacity}
+            nopeOpacity={nopeOpacity}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+          />
+        )}
+      </div>
 
-    <div className="flex items-center gap-6">
-      <button
-        onClick={() => onDismiss('left')}
-        disabled={!!dismissed}
-        className="flex items-center justify-center rounded-full transition-transform active:scale-90"
-        style={nopeBtn}
-      >
-        ✕
-      </button>
-      <button
-        onClick={onEndSession}
-        className="flex flex-col items-center justify-center gap-0.5 rounded-2xl font-[Poppins] transition-transform active:scale-95"
-        style={endBtn}
-      >
-        <span style={{ fontSize: 18, lineHeight: 1 }}>⏹</span>
-        End
-      </button>
-      <button
-        onClick={() => onDismiss('right')}
-        disabled={!!dismissed}
-        className="flex items-center justify-center rounded-full transition-transform active:scale-90"
-        style={likeBtn}
-      >
-        ♥
-      </button>
-    </div>
+      <div className="flex items-center gap-6">
+        <button
+          onClick={() => onDismiss('left')}
+          disabled={!!dismissed}
+          className="flex items-center justify-center rounded-full transition-transform active:scale-90"
+          style={nopeBtn}
+        >
+          ✕
+        </button>
+        <button
+          onClick={onEndSession}
+          className="flex flex-col items-center justify-center gap-0.5 rounded-2xl font-[Poppins] transition-transform active:scale-95"
+          style={endBtn}
+        >
+          <span style={{ fontSize: 18, lineHeight: 1 }}>⏹</span>
+          {t('movieCardStack.end')}
+        </button>
+        <button
+          onClick={() => onDismiss('right')}
+          disabled={!!dismissed}
+          className="flex items-center justify-center rounded-full transition-transform active:scale-90"
+          style={likeBtn}
+        >
+          ♥
+        </button>
+      </div>
 
-    <p className="font-[Poppins] text-[12px]" style={{ color: 'rgba(255,255,255,0.22)' }}>
-      tap for plot · drag · ← → keys · ⏹ to end early
-    </p>
-  </>
-)
+      <p className="font-[Poppins] text-[12px]" style={{ color: 'rgba(255,255,255,0.22)' }}>
+        {t('movieCardStack.hint')}
+      </p>
+    </>
+  )
+}

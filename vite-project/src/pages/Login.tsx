@@ -1,5 +1,6 @@
 import { FC, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import AuthLayout from '../components/AuthLayout'
 import { FormField } from '../components/ui/FormField'
 import { Button } from '../components/ui/Button'
@@ -7,6 +8,7 @@ import { apiLogin } from '../api/auth'
 import { ROUTES } from '../lib/routes'
 
 const Login: FC = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -22,7 +24,7 @@ const Login: FC = () => {
       localStorage.setItem('token', data.access_token)
       navigate(ROUTES.DASHBOARD)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Something went wrong')
+      setError(err instanceof Error ? err.message : t('auth.somethingWentWrong'))
     } finally {
       setLoading(false)
     }
@@ -34,28 +36,28 @@ const Login: FC = () => {
         className="font-['Abril_Fatface'] text-[42px] text-transparent leading-none mb-1"
         style={{ WebkitTextStroke: '1.5px white' }}
       >
-        Welcome Back
+        {t('auth.login.title')}
       </h2>
       <p className="font-[Poppins] text-[14px] mb-8" style={{ color: 'rgba(255,255,255,0.5)' }}>
-        Don't have an account?{' '}
+        {t('auth.login.noAccount')}{' '}
         <Link to={ROUTES.REGISTER} className="underline" style={{ color: '#A582F7' }}>
-          Sign up
+          {t('auth.login.signUp')}
         </Link>
       </p>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <FormField
-          label="Email"
+          label={t('auth.login.email')}
           type="email"
-          placeholder="you@example.com"
+          placeholder={t('auth.login.emailPlaceholder')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
         <FormField
-          label="Password"
+          label={t('auth.login.password')}
           type="password"
-          placeholder="Your password"
+          placeholder={t('auth.login.passwordPlaceholder')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
@@ -68,7 +70,7 @@ const Login: FC = () => {
         )}
 
         <Button type="submit" size="lg" fullWidth disabled={loading} className="mt-2">
-          {loading ? 'Signing in…' : 'Sign In'}
+          {loading ? t('auth.login.signingIn') : t('auth.login.signIn')}
         </Button>
       </form>
     </AuthLayout>

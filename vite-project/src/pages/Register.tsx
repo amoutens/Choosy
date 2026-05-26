@@ -1,5 +1,6 @@
 import { FC, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import AuthLayout from '../components/AuthLayout'
 import { FormField } from '../components/ui/FormField'
 import { Button } from '../components/ui/Button'
@@ -7,6 +8,7 @@ import { apiRegister } from '../api/auth'
 import { ROUTES } from '../lib/routes'
 
 const Register: FC = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -23,7 +25,7 @@ const Register: FC = () => {
       localStorage.setItem('token', data.access_token)
       navigate(ROUTES.DASHBOARD)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Something went wrong')
+      setError(err instanceof Error ? err.message : t('auth.somethingWentWrong'))
     } finally {
       setLoading(false)
     }
@@ -35,35 +37,35 @@ const Register: FC = () => {
         className="font-['Abril_Fatface'] text-[42px] text-transparent leading-none mb-1"
         style={{ WebkitTextStroke: '1.5px white' }}
       >
-        Create Account
+        {t('auth.register.title')}
       </h2>
       <p className="font-[Poppins] text-[14px] mb-8" style={{ color: 'rgba(255,255,255,0.5)' }}>
-        Already have an account?{' '}
+        {t('auth.register.hasAccount')}{' '}
         <Link to={ROUTES.LOGIN} className="underline" style={{ color: '#A582F7' }}>
-          Sign in
+          {t('auth.register.signIn')}
         </Link>
       </p>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <FormField
-          label="Name (optional)"
+          label={t('auth.register.name')}
           type="text"
-          placeholder="Your name"
+          placeholder={t('auth.register.namePlaceholder')}
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
         <FormField
-          label="Email"
+          label={t('auth.register.email')}
           type="email"
-          placeholder="you@example.com"
+          placeholder={t('auth.register.emailPlaceholder')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
         <FormField
-          label="Password"
+          label={t('auth.register.password')}
           type="password"
-          placeholder="Min. 6 characters"
+          placeholder={t('auth.register.passwordPlaceholder')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
@@ -76,7 +78,7 @@ const Register: FC = () => {
         )}
 
         <Button type="submit" size="lg" fullWidth disabled={loading} className="mt-2">
-          {loading ? 'Creating…' : 'Sign Up'}
+          {loading ? t('auth.register.creating') : t('auth.register.signUp')}
         </Button>
       </form>
     </AuthLayout>

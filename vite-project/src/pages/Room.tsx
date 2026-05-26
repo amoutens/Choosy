@@ -1,5 +1,6 @@
 import { FC, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { PageBackground } from '../components/PageBackground'
 import { Logo } from '../components/Logo'
 import { UserMenu } from '../components/UserMenu'
@@ -10,6 +11,7 @@ import { LobbyView } from '../components/room/LobbyView'
 import { LiveRecsPanel } from '../components/room/LiveRecsPanel'
 import { WaitingResultsView } from '../components/room/WaitingResultsView'
 import { ResultsView } from '../components/room/ResultsView'
+import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { useRequireAuth, logout } from '../lib/token'
 import { useSwipeMechanics } from '../hooks/useSwipeMechanics'
 import { useRoomSocket, MovieRanking } from '../hooks/useRoomSocket'
@@ -36,6 +38,7 @@ enum LocalPhase {
 }
 
 const Room: FC = () => {
+  const { t } = useTranslation()
   const { code } = useParams<{ code: string }>()
   const navigate = useNavigate()
   const user = useRequireAuth()
@@ -237,23 +240,26 @@ const Room: FC = () => {
 
   const subtitle =
     localPhase === LocalPhase.Results
-      ? 'session complete'
+      ? t('room.subtitleComplete')
       : localPhase === LocalPhase.Voting || localPhase === LocalPhase.Done
-        ? 'swiping together'
-        : 'group session'
+        ? t('room.subtitleSwiping')
+        : t('room.subtitleGroup')
 
   const title =
     localPhase === LocalPhase.Results
-      ? 'Group Picks'
+      ? t('room.titleResults')
       : localPhase === LocalPhase.Voting || localPhase === LocalPhase.Done
-        ? 'Pick Your Movie'
-        : 'Room'
+        ? t('room.titleVoting')
+        : t('room.titleLobby')
 
   return (
     <PageBackground>
       <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-between px-10 py-5">
         <Logo />
-        <UserMenu email={user.email} userId={user.sub} onLogout={() => logout(navigate)} />
+        <div className="flex items-center gap-4">
+          <LanguageSwitcher />
+          <UserMenu email={user.email} userId={user.sub} onLogout={() => logout(navigate)} />
+        </div>
       </div>
 
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center gap-8 px-6 pt-24 pb-10">
@@ -278,7 +284,7 @@ const Room: FC = () => {
             }}
           >
             <span className="font-[Poppins] text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
-              room code
+              {t('room.roomCode')}
             </span>
             <span
               className="font-[Poppins] font-bold text-[20px] text-white tracking-widest"
@@ -291,7 +297,7 @@ const Room: FC = () => {
               className="font-[Poppins] text-[11px] px-2 py-0.5 rounded-lg transition-opacity hover:opacity-70"
               style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' }}
             >
-              copy
+              {t('room.copy')}
             </button>
           </div>
         )}
@@ -302,7 +308,7 @@ const Room: FC = () => {
               {error}
             </p>
             <Button variant="ghost" onClick={() => navigate(ROUTES.DASHBOARD)}>
-              Back to Dashboard
+              {t('room.backToDashboard')}
             </Button>
           </div>
         )}
@@ -365,7 +371,7 @@ const Room: FC = () => {
                   className="font-[Poppins] text-[12px]"
                   style={{ color: 'rgba(255,255,255,0.3)' }}
                 >
-                  {swipedCount} / {totalCards} swiped
+                  {t('room.swiped', { count: swipedCount, total: totalCards })}
                 </p>
                 {movieRankings.length > 0 && (
                   <LiveRecsPanel rankings={movieRankings} allMovies={allMovies} />
@@ -377,10 +383,10 @@ const Room: FC = () => {
                   className="font-[Poppins] text-[15px]"
                   style={{ color: 'rgba(255,255,255,0.5)' }}
                 >
-                  No movies to swipe
+                  {t('room.noMovies')}
                 </p>
                 <Button variant="ghost" onClick={() => navigate(ROUTES.DASHBOARD)}>
-                  Back to Dashboard
+                  {t('room.backToDashboard')}
                 </Button>
               </div>
             )}

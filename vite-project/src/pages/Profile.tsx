@@ -1,5 +1,6 @@
 import { FC, useRef, useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import AuthLayout from '../components/AuthLayout'
 import { Avatar } from '../components/ui/Avatar'
 import { Button } from '../components/ui/Button'
@@ -9,6 +10,7 @@ import { fetchMyProfile, uploadAvatar, deleteAvatar, updateName } from '../api/u
 import { ROUTES } from '../lib/routes'
 
 const Profile: FC = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const user = useRequireAuth()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -58,7 +60,7 @@ const Profile: FC = () => {
       await uploadAvatar(preview)
       setAvatarSrc(preview)
       setPreview(null)
-    }, 'Failed to save. Try again.')
+    }, t('profile.failedToSave'))
   }
 
   const handleRemove = () =>
@@ -66,7 +68,7 @@ const Profile: FC = () => {
       await deleteAvatar()
       setAvatarSrc(null)
       setPreview(null)
-    }, 'Failed to remove. Try again.')
+    }, t('profile.failedToRemove'))
 
   const handleNameEdit = () => {
     setNameInput(name)
@@ -78,7 +80,7 @@ const Profile: FC = () => {
       await updateName(nameInput.trim())
       setName(nameInput.trim())
       setEditingName(false)
-    }, 'Failed to save name. Try again.')
+    }, t('profile.failedToSaveName'))
 
   if (!user) return null
 
@@ -129,7 +131,7 @@ const Profile: FC = () => {
               className="font-[Poppins] text-[13px] px-4 py-1.5 rounded-xl text-white disabled:opacity-50"
               style={{ background: 'linear-gradient(to bottom, #CE9FFC, #7367F0)' }}
             >
-              {saving ? 'Saving…' : 'Save'}
+              {saving ? t('profile.saving') : t('profile.save')}
             </button>
             <button
               onClick={() => {
@@ -140,7 +142,7 @@ const Profile: FC = () => {
               className="font-[Poppins] text-[13px] px-4 py-1.5 rounded-xl disabled:opacity-50"
               style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}
             >
-              Cancel
+              {t('profile.cancel')}
             </button>
           </div>
         ) : avatarSrc ? (
@@ -150,11 +152,11 @@ const Profile: FC = () => {
             className="font-[Poppins] text-[12px] disabled:opacity-50"
             style={{ color: '#ff7c7c' }}
           >
-            {saving ? 'Removing…' : 'Remove photo'}
+            {saving ? t('profile.removing') : t('profile.removePhoto')}
           </button>
         ) : (
           <p className="font-[Poppins] text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            Click to upload photo
+            {t('profile.clickToUpload')}
           </p>
         )}
 
@@ -165,7 +167,7 @@ const Profile: FC = () => {
         )}
 
         <p className="font-[Poppins] text-[13px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          ID: {user.sub}
+          {t('profile.id', { id: user.sub })}
         </p>
       </div>
 
@@ -173,7 +175,7 @@ const Profile: FC = () => {
         className="font-['Abril_Fatface'] text-[42px] text-transparent leading-none mb-6"
         style={{ WebkitTextStroke: '1.5px white' }}
       >
-        My Profile
+        {t('profile.title')}
       </h2>
 
       <div className="flex flex-col gap-3 mb-8">
@@ -186,7 +188,7 @@ const Profile: FC = () => {
         >
           <div className="flex items-center justify-between mb-1">
             <p className="font-[Poppins] text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
-              Name
+              {t('profile.name')}
             </p>
             {!editingName && (
               <button
@@ -194,7 +196,7 @@ const Profile: FC = () => {
                 className="font-[Poppins] text-[11px] hover:opacity-70 transition-opacity"
                 style={{ color: '#CE9FFC' }}
               >
-                Edit
+                {t('profile.edit')}
               </button>
             )}
           </div>
@@ -217,7 +219,7 @@ const Profile: FC = () => {
                   color: '#fff',
                 }}
               >
-                Save
+                {t('profile.save')}
               </button>
               <button
                 onClick={() => setEditingName(false)}
@@ -225,12 +227,14 @@ const Profile: FC = () => {
                 className="font-[Poppins] text-[12px] px-3 py-1 rounded-xl disabled:opacity-50"
                 style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}
               >
-                Cancel
+                {t('profile.cancel')}
               </button>
             </div>
           ) : (
             <p className="font-[Poppins] text-[15px] text-white">
-              {name || <span style={{ color: 'rgba(255,255,255,0.3)' }}>Not set</span>}
+              {name || (
+                <span style={{ color: 'rgba(255,255,255,0.3)' }}>{t('profile.notSet')}</span>
+              )}
             </p>
           )}
         </div>
@@ -243,7 +247,7 @@ const Profile: FC = () => {
           }}
         >
           <p className="font-[Poppins] text-[11px] mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            Email
+            {t('profile.email')}
           </p>
           <p className="font-[Poppins] text-[15px] text-white">{user.email}</p>
         </div>
@@ -258,10 +262,10 @@ const Profile: FC = () => {
             background: 'linear-gradient(to bottom, #CE9FFC, #A582F7, #7367F0)',
           }}
         >
-          Back to Dashboard
+          {t('profile.backToDashboard')}
         </Link>
         <Button variant="danger" fullWidth onClick={() => logout(navigate)}>
-          Log Out
+          {t('profile.logOut')}
         </Button>
       </div>
     </AuthLayout>

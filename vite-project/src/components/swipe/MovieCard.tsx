@@ -1,4 +1,5 @@
 import { FC } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Movie } from '../../api/movies.types'
 
 const SwipeLabel: FC<{ text: string; color: string; side: 'left' | 'right'; opacity: number }> = ({
@@ -21,31 +22,34 @@ const SwipeLabel: FC<{ text: string; color: string; side: 'left' | 'right'; opac
   </div>
 )
 
-const PlotOverlay: FC<{ movie: Movie }> = ({ movie }) => (
-  <div
-    className="absolute inset-0 flex flex-col justify-end p-5"
-    style={{ background: 'rgba(10,5,25,0.92)', backdropFilter: 'blur(6px)', zIndex: 10 }}
-  >
-    <h2 className="font-['Abril_Fatface'] text-white mb-2 leading-tight" style={{ fontSize: 18 }}>
-      {movie.Title}
-    </h2>
-    <p
-      className="font-[Poppins] text-[13px] leading-relaxed mb-3"
-      style={{
-        color: 'rgba(255,255,255,0.82)',
-        display: '-webkit-box',
-        WebkitLineClamp: 7,
-        WebkitBoxOrient: 'vertical',
-        overflow: 'hidden',
-      }}
+const PlotOverlay: FC<{ movie: Movie }> = ({ movie }) => {
+  const { t } = useTranslation()
+  return (
+    <div
+      className="absolute inset-0 flex flex-col justify-end p-5"
+      style={{ background: 'rgba(10,5,25,0.92)', backdropFilter: 'blur(6px)', zIndex: 10 }}
     >
-      {movie.Plot}
-    </p>
-    <p className="font-[Poppins] text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
-      tap to close
-    </p>
-  </div>
-)
+      <h2 className="font-['Abril_Fatface'] text-white mb-2 leading-tight" style={{ fontSize: 18 }}>
+        {movie.Title}
+      </h2>
+      <p
+        className="font-[Poppins] text-[13px] leading-relaxed mb-3"
+        style={{
+          color: 'rgba(255,255,255,0.82)',
+          display: '-webkit-box',
+          WebkitLineClamp: 7,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+        }}
+      >
+        {movie.Plot}
+      </p>
+      <p className="font-[Poppins] text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+        {t('movieCard.tapToClose')}
+      </p>
+    </div>
+  )
+}
 
 const CardInfo: FC<{ movie: Movie }> = ({ movie }) => (
   <div className="absolute bottom-0 left-0 right-0 p-5">
@@ -108,41 +112,44 @@ export const MovieCard: FC<MovieCardProps> = ({
   onPointerDown,
   onPointerMove,
   onPointerUp,
-}) => (
-  <div
-    className="absolute inset-0 rounded-3xl overflow-hidden"
-    style={{
-      zIndex: 3,
-      transform: `translateX(${translateX}px) rotate(${rotation}deg)`,
-      transition:
-        isDragging && !dismissed ? 'none' : 'transform 0.36s cubic-bezier(0.25,0.46,0.45,0.94)',
-      cursor: isDragging ? 'grabbing' : 'grab',
-      touchAction: 'none',
-      boxShadow: '0 28px 60px rgba(0,0,0,0.55)',
-    }}
-    onPointerDown={onPointerDown}
-    onPointerMove={onPointerMove}
-    onPointerUp={onPointerUp}
-    onPointerCancel={onPointerUp}
-  >
-    <img
-      src={movie.Poster}
-      alt={movie.Title}
-      className="w-full h-full object-cover"
-      draggable={false}
-    />
+}) => {
+  const { t } = useTranslation()
+  return (
     <div
-      className="absolute inset-0"
+      className="absolute inset-0 rounded-3xl overflow-hidden"
       style={{
-        background:
-          'linear-gradient(to top, rgba(10,5,25,0.96) 0%, rgba(10,5,25,0.35) 55%, transparent 100%)',
+        zIndex: 3,
+        transform: `translateX(${translateX}px) rotate(${rotation}deg)`,
+        transition:
+          isDragging && !dismissed ? 'none' : 'transform 0.36s cubic-bezier(0.25,0.46,0.45,0.94)',
+        cursor: isDragging ? 'grabbing' : 'grab',
+        touchAction: 'none',
+        boxShadow: '0 28px 60px rgba(0,0,0,0.55)',
       }}
-    />
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+    >
+      <img
+        src={movie.Poster}
+        alt={movie.Title}
+        className="w-full h-full object-cover"
+        draggable={false}
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(to top, rgba(10,5,25,0.96) 0%, rgba(10,5,25,0.35) 55%, transparent 100%)',
+        }}
+      />
 
-    <SwipeLabel text="LIKE" color="#4ade80" side="left" opacity={likeOpacity} />
-    <SwipeLabel text="NOPE" color="#ff7c7c" side="right" opacity={nopeOpacity} />
+      <SwipeLabel text={t('movieCard.like')} color="#4ade80" side="left" opacity={likeOpacity} />
+      <SwipeLabel text={t('movieCard.nope')} color="#ff7c7c" side="right" opacity={nopeOpacity} />
 
-    {showPlot && <PlotOverlay movie={movie} />}
-    <CardInfo movie={movie} />
-  </div>
-)
+      {showPlot && <PlotOverlay movie={movie} />}
+      <CardInfo movie={movie} />
+    </div>
+  )
+}

@@ -1,8 +1,10 @@
 import { FC, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { PageBackground } from '../components/PageBackground'
 import { Logo } from '../components/Logo'
 import { UserMenu } from '../components/UserMenu'
+import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { RoomCard } from '../components/dashboard/RoomCard'
 import { CreateRoomModal } from '../components/dashboard/CreateRoomModal'
 import { JoinRoomModal } from '../components/dashboard/JoinRoomModal'
@@ -14,6 +16,7 @@ import { ROUTES } from '../lib/routes'
 import { createRoom } from '../api/rooms'
 
 const Dashboard: FC = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const user = useRequireAuth()
 
@@ -42,19 +45,22 @@ const Dashboard: FC = () => {
     <PageBackground>
       <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-between px-10 py-5">
         <Logo />
-        <UserMenu email={user.email} userId={user.sub} onLogout={() => logout(navigate)} />
+        <div className="flex items-center gap-4">
+          <LanguageSwitcher />
+          <UserMenu email={user.email} userId={user.sub} onLogout={() => logout(navigate)} />
+        </div>
       </div>
 
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center gap-10 px-6 pt-20">
         <div className="text-center">
           <p className="font-[Poppins] text-[14px] mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            ready to choose?
+            {t('dashboard.subtitle')}
           </p>
           <h1
             className="font-['Abril_Fatface'] text-[64px] text-transparent leading-none"
             style={{ WebkitTextStroke: '1.5px white' }}
           >
-            Pick Your Movie
+            {t('dashboard.title')}
           </h1>
         </div>
 
@@ -64,27 +70,27 @@ const Dashboard: FC = () => {
           onClick={() => navigate(ROUTES.SWIPE)}
           style={{ paddingLeft: 32, paddingRight: 32, gap: 10 }}
         >
-          <span style={{ fontSize: 20 }}>🎬</span> Solo Swipe
+          <span style={{ fontSize: 20 }}>🎬</span> {t('dashboard.soloSwipe')}
         </Button>
 
         <div className="flex flex-col sm:flex-row gap-6">
           <RoomCard
             icon={<FilmIcon />}
-            title="Create Room"
-            description="Start a new session and invite friends to vote"
+            title={t('dashboard.createRoom')}
+            description={t('dashboard.createRoomDesc')}
             onAction={handleCreateRoom}
-            actionLabel={isCreating ? 'Creating…' : 'Create'}
+            actionLabel={isCreating ? t('dashboard.creating') : t('dashboard.create')}
           />
 
           <RoomCard
             icon={<FilmIconSecondary />}
-            title="Join Room"
-            description="Enter a room code to join your friends"
+            title={t('dashboard.joinRoom')}
+            description={t('dashboard.joinRoomDesc')}
           >
             <div className="w-full flex flex-col gap-3">
               <input
                 type="text"
-                placeholder="Room code"
+                placeholder={t('dashboard.roomCodePlaceholder')}
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                 maxLength={6}
@@ -99,7 +105,7 @@ const Dashboard: FC = () => {
                 }}
               />
               <Button fullWidth disabled={!joinCode.trim()} onClick={() => setShowJoin(true)}>
-                Join
+                {t('dashboard.join')}
               </Button>
             </div>
           </RoomCard>

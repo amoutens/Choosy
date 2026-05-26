@@ -1,5 +1,6 @@
 import { FC, useRef, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Avatar } from './ui/Avatar'
 import { cn } from '../lib/utils'
 import { ROUTES } from '../lib/routes'
@@ -12,6 +13,7 @@ interface UserMenuProps {
 }
 
 export const UserMenu: FC<UserMenuProps> = ({ email, userId, onLogout }) => {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [avatarSrc, setAvatarSrc] = useState<string | null>(null)
   const [displayName, setDisplayName] = useState<string>('')
@@ -96,7 +98,7 @@ export const UserMenu: FC<UserMenuProps> = ({ email, userId, onLogout }) => {
               <circle cx="12" cy="8" r="4" />
               <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
             </svg>
-            My Profile
+            {t('userMenu.myProfile')}
           </Link>
           <button
             onClick={onLogout}
@@ -117,7 +119,7 @@ export const UserMenu: FC<UserMenuProps> = ({ email, userId, onLogout }) => {
               <polyline points="16 17 21 12 16 7" />
               <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
-            Log Out
+            {t('userMenu.logOut')}
           </button>
         </div>
       )}

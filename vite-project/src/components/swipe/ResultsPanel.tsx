@@ -1,4 +1,5 @@
 import { FC, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Movie } from '../../api/movies.types'
 import { Button } from '../ui/Button'
 
@@ -52,6 +53,7 @@ export const ResultsPanel: FC<ResultsPanelProps> = ({
   onChangeFilters,
   onDashboard,
 }) => {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(true)
 
   return (
@@ -60,8 +62,10 @@ export const ResultsPanel: FC<ResultsPanelProps> = ({
         className="flex gap-8 font-[Poppins] text-[15px]"
         style={{ color: 'rgba(255,255,255,0.6)' }}
       >
-        <span style={{ color: '#4ade80' }}>♥ {likedCount} liked</span>
-        <span style={{ color: 'rgba(255,255,255,0.35)' }}>✕ {dislikedCount} passed</span>
+        <span style={{ color: '#4ade80' }}>♥ {t('resultsPanel.liked', { count: likedCount })}</span>
+        <span style={{ color: 'rgba(255,255,255,0.35)' }}>
+          ✕ {t('resultsPanel.passed', { count: dislikedCount })}
+        </span>
       </div>
 
       {likedMovies.length > 0 ? (
@@ -81,7 +85,7 @@ export const ResultsPanel: FC<ResultsPanelProps> = ({
               className="font-[Poppins] text-[12px] font-semibold uppercase tracking-widest"
               style={{ color: 'rgba(255,255,255,0.35)' }}
             >
-              Liked movies
+              {t('resultsPanel.likedMovies')}
             </p>
             <span
               className="font-[Poppins] text-[12px] transition-transform"
@@ -97,31 +101,31 @@ export const ResultsPanel: FC<ResultsPanelProps> = ({
 
           {expanded && (
             <div className="grid grid-cols-3 gap-3">
-              {likedMovies.map((m) => (
-                <MovieThumb key={m.imdbID} movie={m} />
+              {likedMovies.map((movie) => (
+                <MovieThumb key={movie.imdbID} movie={movie} />
               ))}
             </div>
           )}
         </div>
       ) : (
         <p className="font-[Poppins] text-[15px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
-          No liked movies this session
+          {t('resultsPanel.noLikedMovies')}
         </p>
       )}
 
       <div className="flex gap-3 flex-wrap justify-center">
         <Button onClick={onSwipeAgain} style={{ paddingLeft: 24, paddingRight: 24 }}>
-          Swipe Again
+          {t('resultsPanel.swipeAgain')}
         </Button>
         <Button
           variant="ghost"
           onClick={onChangeFilters}
           style={{ paddingLeft: 24, paddingRight: 24 }}
         >
-          Change Filters
+          {t('resultsPanel.changeFilters')}
         </Button>
         <Button variant="ghost" onClick={onDashboard} style={{ paddingLeft: 24, paddingRight: 24 }}>
-          Dashboard
+          {t('resultsPanel.dashboard')}
         </Button>
       </div>
     </div>

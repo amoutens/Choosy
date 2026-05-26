@@ -1,4 +1,5 @@
 import { FC, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '../ui/Button'
 import { Movie } from '../../api/movies.types'
 import { RoomState, RoomResults } from '../../api/rooms'
@@ -130,6 +131,7 @@ export interface ResultsViewProps {
 }
 
 export const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDashboard }) => {
+  const { t } = useTranslation()
   const total = participants.length
   const alpha = results.movies[0]?.alpha ?? 1
   const likedMovies = results.movies.filter((result) => result.likeCount > 0)
@@ -141,12 +143,16 @@ export const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDas
   return (
     <div className="w-full max-w-lg flex flex-col items-center gap-6">
       <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 font-[Poppins] text-[13px]">
-        <span style={{ color: '#4ade80' }}>★ {everyoneLiked.length} everyone liked</span>
-        <span style={{ color: 'rgba(255,255,255,0.35)' }}>{likedMovies.length} picks</span>
+        <span style={{ color: '#4ade80' }}>
+          ★ {t('results.everyoneLiked', { count: everyoneLiked.length })}
+        </span>
+        <span style={{ color: 'rgba(255,255,255,0.35)' }}>
+          {t('results.picks', { count: likedMovies.length })}
+        </span>
         <span
           className="px-2 py-0.5 rounded-lg"
           style={{ background: 'rgba(206,159,252,0.12)', color: '#CE9FFC' }}
-          title="Algorithm balance: 1.0 = average only, 0.0 = least misery only"
+          title={t('results.algorithmBalance')}
         >
           α = {alpha.toFixed(2)}
         </span>
@@ -154,7 +160,7 @@ export const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDas
 
       {likedMovies.length === 0 ? (
         <p className="font-[Poppins] text-[15px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          No one liked any movies
+          {t('results.noLikes')}
         </p>
       ) : (
         <div
@@ -168,7 +174,7 @@ export const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDas
           {everyoneLiked.length > 0 && (
             <div>
               <SectionToggle
-                label="Everyone liked"
+                label={t('results.sectionEveryoneLiked')}
                 color="#4ade80"
                 open={showEveryoneLiked}
                 onToggle={() => setShowEveryoneLiked((prev) => !prev)}
@@ -192,7 +198,7 @@ export const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDas
           {someLiked.length > 0 && (
             <div>
               <SectionToggle
-                label="Also liked"
+                label={t('results.sectionAlsoLiked')}
                 color="rgba(255,255,255,0.35)"
                 open={showSomeLiked}
                 onToggle={() => setShowSomeLiked((prev) => !prev)}
@@ -216,7 +222,7 @@ export const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDas
       )}
 
       <Button onClick={onDashboard} style={{ paddingLeft: 32, paddingRight: 32 }}>
-        Back to Dashboard
+        {t('results.backToDashboard')}
       </Button>
     </div>
   )

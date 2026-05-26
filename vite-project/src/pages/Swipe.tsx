@@ -1,8 +1,10 @@
 import { FC, useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { PageBackground } from '../components/PageBackground'
 import { Logo } from '../components/Logo'
 import { UserMenu } from '../components/UserMenu'
+import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { useRequireAuth, logout } from '../lib/token'
 import { Movie, MovieFilters } from '../api/movies.types'
 import { ROUTES } from '../lib/routes'
@@ -14,6 +16,7 @@ import { useMovieFetcher } from '../hooks/useMovieFetcher'
 import { useSwipeMechanics } from '../hooks/useSwipeMechanics'
 
 const Swipe: FC = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const user = useRequireAuth()
 
@@ -107,19 +110,22 @@ const Swipe: FC = () => {
     <PageBackground>
       <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-between px-10 py-5">
         <Logo />
-        <UserMenu email={user.email} userId={user.sub} onLogout={() => logout(navigate)} />
+        <div className="flex items-center gap-4">
+          <LanguageSwitcher />
+          <UserMenu email={user.email} userId={user.sub} onLogout={() => logout(navigate)} />
+        </div>
       </div>
 
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center gap-8 px-6 pt-24 pb-10">
         <div className="text-center">
           <p className="font-[Poppins] text-[14px] mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            {phase === 'results' ? 'session complete' : 'ready to choose?'}
+            {phase === 'results' ? t('swipe.subtitleComplete') : t('swipe.subtitleReady')}
           </p>
           <h1
             className="font-['Abril_Fatface'] text-[48px] text-transparent leading-none"
             style={{ WebkitTextStroke: '1.5px white' }}
           >
-            {phase === 'results' ? 'Your Picks' : 'Pick Your Movie'}
+            {phase === 'results' ? t('swipe.titleResults') : t('swipe.titleSwiping')}
           </h1>
         </div>
 
@@ -132,14 +138,14 @@ const Swipe: FC = () => {
             maxYear={maxYear}
             minRating={minRating}
             maxRating={maxRating}
-            onToggleType={(t) =>
+            onToggleType={(type) =>
               setSelectedTypes((prev) =>
-                prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
+                prev.includes(type) ? prev.filter((x) => x !== type) : [...prev, type]
               )
             }
-            onToggleGenre={(g) =>
+            onToggleGenre={(genre) =>
               setSelectedGenres((prev) =>
-                prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]
+                prev.includes(genre) ? prev.filter((x) => x !== genre) : [...prev, genre]
               )
             }
             onSetMinYear={setMinYear}
@@ -159,14 +165,14 @@ const Swipe: FC = () => {
                   className="font-[Poppins] text-[15px]"
                   style={{ color: 'rgba(255,255,255,0.5)' }}
                 >
-                  No movies found for these filters
+                  {t('swipe.noMovies')}
                 </p>
                 <button
                   className="font-[Poppins] text-[13px] underline"
                   style={{ color: 'rgba(255,255,255,0.35)' }}
                   onClick={() => setPhase('filter')}
                 >
-                  Change filters
+                  {t('swipe.changeFilters')}
                 </button>
               </div>
             ) : movies.length === 0 && isFetchingMore ? (
@@ -179,7 +185,7 @@ const Swipe: FC = () => {
                   className="font-[Poppins] text-[14px]"
                   style={{ color: 'rgba(255,255,255,0.4)' }}
                 >
-                  Loading movies…
+                  {t('swipe.loadingMovies')}
                 </p>
               </div>
             ) : (
@@ -204,7 +210,7 @@ const Swipe: FC = () => {
 
             {isFetchingMore && movies.length > 0 && (
               <p className="font-[Poppins] text-[11px]" style={{ color: 'rgba(255,255,255,0.18)' }}>
-                loading more…
+                {t('swipe.loadingMore')}
               </p>
             )}
           </>

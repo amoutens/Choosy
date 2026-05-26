@@ -1,0 +1,188 @@
+{
+  "home": {
+    "tagline": "Don't Argue",
+    "cta": "Get Started"
+  },
+  "auth": {
+    "somethingWentWrong": "Something went wrong",
+    "login": {
+      "title": "Welcome Back",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "Your password",
+      "signingIn": "Signing in…",
+      "signIn": "Sign In"
+    },
+    "register": {
+      "title": "Create Account",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "name": "Name (optional)",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "Min. 6 characters",
+      "creating": "Creating…",
+      "signUp": "Sign Up"
+    }
+  },
+  "dashboard": {
+    "subtitle": "ready to choose?",
+    "title": "Pick Your Movie",
+    "soloSwipe": "Solo Swipe",
+    "createRoom": "Create Room",
+    "createRoomDesc": "Start a new session and invite friends to vote",
+    "create": "Create",
+    "creating": "Creating…",
+    "joinRoom": "Join Room",
+    "joinRoomDesc": "Enter a room code to join your friends",
+    "roomCodePlaceholder": "Room code",
+    "join": "Join"
+  },
+  "profile": {
+    "title": "My Profile",
+    "clickToUpload": "Click to upload photo",
+    "saving": "Saving…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "removing": "Removing…",
+    "removePhoto": "Remove photo",
+    "id": "ID: {{id}}",
+    "name": "Name",
+    "edit": "Edit",
+    "notSet": "Not set",
+    "email": "Email",
+    "backToDashboard": "Back to Dashboard",
+    "logOut": "Log Out",
+    "failedToSave": "Failed to save. Try again.",
+    "failedToRemove": "Failed to remove. Try again.",
+    "failedToSaveName": "Failed to save name. Try again."
+  },
+  "room": {
+    "subtitleComplete": "session complete",
+    "subtitleSwiping": "swiping together",
+    "subtitleGroup": "group session",
+    "titleResults": "Group Picks",
+    "titleVoting": "Pick Your Movie",
+    "titleLobby": "Room",
+    "roomCode": "room code",
+    "copy": "copy",
+    "backToDashboard": "Back to Dashboard",
+    "noMovies": "No movies to swipe",
+    "swiped": "{{count}} / {{total}} swiped"
+  },
+  "swipe": {
+    "subtitleComplete": "session complete",
+    "subtitleReady": "ready to choose?",
+    "titleResults": "Your Picks",
+    "titleSwiping": "Pick Your Movie",
+    "noMovies": "No movies found for these filters",
+    "changeFilters": "Change filters",
+    "loadingMovies": "Loading movies…",
+    "loadingMore": "loading more…"
+  },
+  "userMenu": {
+    "myProfile": "My Profile",
+    "logOut": "Log Out"
+  },
+  "createRoomModal": {
+    "title": "Room Created!",
+    "shareCode": "Share this code with your friends",
+    "copyCode": "Copy Code",
+    "start": "Start",
+    "cancel": "Cancel"
+  },
+  "joinRoomModal": {
+    "title": "Joining Room",
+    "back": "Back",
+    "join": "Join"
+  },
+  "lobby": {
+    "participants": "Participants ({{count}})",
+    "host": "host",
+    "loadingMovies": "Loading movies…",
+    "startVoting": "Start Voting",
+    "waitingForHost": "Waiting for host to start…"
+  },
+  "liveRecs": {
+    "groupTopPicks": "Group top picks so far"
+  },
+  "results": {
+    "everyoneLiked": "{{count}} everyone liked",
+    "picks": "{{count}} picks",
+    "algorithmBalance": "Algorithm balance: 1.0 = average only, 0.0 = least misery only",
+    "noLikes": "No one liked any movies",
+    "sectionEveryoneLiked": "Everyone liked",
+    "sectionAlsoLiked": "Also liked",
+    "backToDashboard": "Back to Dashboard"
+  },
+  "waitingResults": {
+    "waiting": "Waiting for everyone…",
+    "finished": "{{count}} / {{total}} finished"
+  },
+  "filters": {
+    "contentType": "Content Type",
+    "genre": "Genre",
+    "year": "Year",
+    "from": "From",
+    "to": "To",
+    "imdbRating": "IMDb Rating",
+    "minRating": "Min (1–10)",
+    "maxRating": "Max (1–10)",
+    "moviesLoadNote": "Movies load as you swipe",
+    "loading": "Loading…",
+    "startSwiping": "Start Swiping →",
+    "resetFilters": "Reset filters",
+    "types": {
+      "MOVIE": "Movie",
+      "TV_SERIES": "TV Series",
+      "TV_MINI_SERIES": "Mini Series",
+      "TV_MOVIE": "TV Movie",
+      "SHORT": "Short"
+    },
+    "genres": {
+      "Action": "Action",
+      "Adventure": "Adventure",
+      "Animation": "Animation",
+      "Biography": "Biography",
+      "Comedy": "Comedy",
+      "Crime": "Crime",
+      "Documentary": "Documentary",
+      "Drama": "Drama",
+      "Family": "Family",
+      "Fantasy": "Fantasy",
+      "History": "History",
+      "Horror": "Horror",
+      "Music": "Music",
+      "Mystery": "Mystery",
+      "Romance": "Romance",
+      "Sci-Fi": "Sci-Fi",
+      "Sport": "Sport",
+      "Thriller": "Thriller",
+      "War": "War",
+      "Western": "Western"
+    }
+  },
+  "movieCard": {
+    "like": "LIKE",
+    "nope": "NOPE",
+    "tapToClose": "tap to close"
+  },
+  "movieCardStack": {
+    "end": "End",
+    "hint": "tap for plot · drag · ← → keys · ⏹ to end early"
+  },
+  "resultsPanel": {
+    "liked": "{{count}} liked",
+    "passed": "{{count}} passed",
+    "likedMovies": "Liked movies",
+    "noLikedMovies": "No liked movies this session",
+    "swipeAgain": "Swipe Again",
+    "changeFilters": "Change Filters",
+    "dashboard": "Dashboard"
+  }
+}

@@ -1,4 +1,5 @@
 import { FC } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '../ui/Button'
 import { GENRE_OPTIONS, TYPE_OPTIONS } from './swipeConfig'
 
@@ -111,6 +112,7 @@ export const FilterPanel: FC<FilterPanelProps> = ({
   onResetFilters,
   startLabel,
 }) => {
+  const { t } = useTranslation()
   const hasFilters =
     selectedTypes.length > 0 ||
     selectedGenres.length > 0 ||
@@ -129,12 +131,12 @@ export const FilterPanel: FC<FilterPanelProps> = ({
       }}
     >
       <div>
-        <SectionLabel>Content Type</SectionLabel>
+        <SectionLabel>{t('filters.contentType')}</SectionLabel>
         <div className="flex flex-wrap gap-2">
           {TYPE_OPTIONS.map((o) => (
             <Chip
               key={o.value}
-              label={o.label}
+              label={t(`filters.types.${o.value}`)}
               active={selectedTypes.includes(o.value)}
               onClick={() => onToggleType(o.value)}
             />
@@ -143,12 +145,12 @@ export const FilterPanel: FC<FilterPanelProps> = ({
       </div>
 
       <div>
-        <SectionLabel>Genre</SectionLabel>
+        <SectionLabel>{t('filters.genre')}</SectionLabel>
         <div className="flex flex-wrap gap-2">
           {GENRE_OPTIONS.map((g) => (
             <Chip
               key={g}
-              label={g}
+              label={t(`filters.genres.${g}`)}
               active={selectedGenres.includes(g)}
               onClick={() => onToggleGenre(g)}
             />
@@ -157,28 +159,28 @@ export const FilterPanel: FC<FilterPanelProps> = ({
       </div>
 
       <RangeInput
-        label="Year"
+        label={t('filters.year')}
         minValue={minYear}
         maxValue={maxYear}
-        minPlaceholder="From"
-        maxPlaceholder="To"
+        minPlaceholder={t('filters.from')}
+        maxPlaceholder={t('filters.to')}
         onSetMin={onSetMinYear}
         onSetMax={onSetMaxYear}
       />
 
       <RangeInput
-        label="IMDb Rating"
+        label={t('filters.imdbRating')}
         minValue={minRating}
         maxValue={maxRating}
-        minPlaceholder="Min (1–10)"
-        maxPlaceholder="Max (1–10)"
+        minPlaceholder={t('filters.minRating')}
+        maxPlaceholder={t('filters.maxRating')}
         onSetMin={onSetMinRating}
         onSetMax={onSetMaxRating}
       />
 
       <div className="flex items-center justify-between gap-4 pt-1">
         <p className="font-[Poppins] text-[13px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
-          Movies load as you swipe
+          {t('filters.moviesLoadNote')}
         </p>
         <Button
           size="md"
@@ -186,7 +188,7 @@ export const FilterPanel: FC<FilterPanelProps> = ({
           onClick={onStartSwiping}
           style={{ paddingLeft: 28, paddingRight: 28 }}
         >
-          {isLoading ? 'Loading…' : (startLabel ?? 'Start Swiping →')}
+          {isLoading ? t('filters.loading') : (startLabel ?? t('filters.startSwiping'))}
         </Button>
       </div>
 
@@ -196,7 +198,7 @@ export const FilterPanel: FC<FilterPanelProps> = ({
           style={{ color: 'rgba(255,255,255,0.3)' }}
           onClick={onResetFilters}
         >
-          Reset filters
+          {t('filters.resetFilters')}
         </button>
       )}
     </div>

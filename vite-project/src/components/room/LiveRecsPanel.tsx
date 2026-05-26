@@ -1,4 +1,5 @@
 import { FC } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Movie } from '../../api/movies.types'
 import { MovieRanking } from '../../hooks/useRoomSocket'
 
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export const LiveRecsPanel: FC<Props> = ({ rankings, allMovies }) => {
+  const { t } = useTranslation()
   const movieMap = new Map(allMovies.map((movie) => [movie.imdbID, movie]))
   const top5 = rankings
     .slice(0, 5)
@@ -20,7 +22,7 @@ export const LiveRecsPanel: FC<Props> = ({ rankings, allMovies }) => {
         className="font-[Poppins] text-[11px] uppercase tracking-widest"
         style={{ color: 'rgba(255,255,255,0.3)' }}
       >
-        Group top picks so far
+        {t('liveRecs.groupTopPicks')}
       </p>
       <div className="flex gap-2 justify-center">
         {top5.map((ranking, index) => (
