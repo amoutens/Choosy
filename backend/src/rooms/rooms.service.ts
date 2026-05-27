@@ -82,9 +82,19 @@ export class RoomsService {
       throw new BadRequestException('Room has already started');
     }
 
-    await this.participantRepo.save(
-      this.participantRepo.create({ roomId: room.id, userId, userEmail }),
-    );
+    try {
+      await this.participantRepo.save(
+        this.participantRepo.create({ roomId: room.id, userId, userEmail }),
+      );
+    } catch (err: unknown) {
+      const isUniqueViolation =
+        typeof err === 'object' &&
+        err !== null &&
+        'code' in err &&
+        (err as { code: string }).code === '23505';
+      if (!isUniqueViolation) throw err;
+      return;
+    }
 
     this.gateway.emitRoomUpdated(code, await this.getState(code));
   }

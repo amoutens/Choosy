@@ -5,10 +5,12 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 import { Room } from './room.entity';
 
 @Entity('room_participants')
+@Unique(['roomId', 'userId'])
 export class RoomParticipant {
   @PrimaryGeneratedColumn('uuid')
   id: string;
