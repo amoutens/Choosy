@@ -25,6 +25,8 @@ export class RecommendationService {
   ): RecommendedResult[] {
     if (candidateMovies.length === 0 || participantIds.length === 0) return [];
 
+    const t0 = performance.now();
+
     // Genre preference profile per user: genre → weight in [−1, 1]
     const userProfiles = this.buildUserProfiles(votes, participantIds);
 
@@ -36,14 +38,16 @@ export class RecommendationService {
     );
 
     // Solo session → no group conflict, pure Average Strategy is optimal (α = 1)
+    const tGaStart = performance.now();
     const alpha =
       participantIds.length <= 1
         ? 1.0
         : this.findOptimalAlpha(contentScores, candidateMovies);
+    const tGaEnd = performance.now();
 
     const likeCountByMovie = this.countLikesPerMovie(votes);
 
-    return candidateMovies
+    const result = candidateMovies
       .map((movie) => {
         const scores = contentScores.get(movie.imdbID) ?? [];
         const avgScore = this.averageStrategy(scores);
@@ -58,6 +62,16 @@ export class RecommendationService {
         };
       })
       .sort((a, b) => b.score - a.score);
+
+    const tTotal = performance.now() - t0;
+    const tGa = tGaEnd - tGaStart;
+
+    console.log(
+      `[Recommend] movies=${candidateMovies.length} participants=${participantIds.length} ` +
+        `ga=${tGa.toFixed(2)}ms total=${tTotal.toFixed(2)}ms α=${alpha.toFixed(4)}`,
+    );
+
+    return result;
   }
 
   // Builds a genre weight map for each user.
@@ -144,6 +158,8 @@ export class RecommendationService {
     contentScores: Map<string, number[]>,
     movies: Movie[],
   ): number {
+    const tInit = performance.now();
+
     const scoredMovies: ScoredMovie[] = movies.map((movie) => {
       const perUserScores = contentScores.get(movie.imdbID) ?? [];
       return {
@@ -165,6 +181,8 @@ export class RecommendationService {
       { length: this.POPULATION_SIZE },
       () => rand(),
     );
+
+    const tEvolution = performance.now();
 
     for (let generation = 0; generation < this.GENERATIONS; generation++) {
       const nextGeneration: number[] = [];
@@ -191,6 +209,14 @@ export class RecommendationService {
       }
       population = nextGeneration;
     }
+
+    const tEnd = performance.now();
+
+    console.log(
+      `  [GA] pop=${this.POPULATION_SIZE} gen=${this.GENERATIONS} ` +
+        `init=${(tEvolution - tInit).toFixed(2)}ms ` +
+        `evolution=${(tEnd - tEvolution).toFixed(2)}ms`,
+    );
 
     return population.reduce(
       (best, alpha) => (fitness(alpha) > fitness(best) ? alpha : best),
