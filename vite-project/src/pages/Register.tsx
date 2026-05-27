@@ -1,4 +1,4 @@
-import { FC, useState } from 'react'
+﻿import { FC, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import AuthLayout from '../components/AuthLayout'
@@ -39,7 +39,7 @@ const Register: FC = () => {
       >
         {t('auth.register.title')}
       </h2>
-      <p className="font-[Poppins] text-[14px] mb-8" style={{ color: 'rgba(255,255,255,0.5)' }}>
+      <p className="font-poppins text-[14px] mb-8" style={{ color: 'rgba(255,255,255,0.5)' }}>
         {t('auth.register.hasAccount')}{' '}
         <Link to={ROUTES.LOGIN} className="underline" style={{ color: '#A582F7' }}>
           {t('auth.register.signIn')}
@@ -72,7 +72,7 @@ const Register: FC = () => {
         />
 
         {error && (
-          <p className="font-[Poppins] text-[13px] text-center" style={{ color: '#ff7c7c' }}>
+          <p className="font-poppins text-[13px] text-center" style={{ color: '#ff7c7c' }}>
             {error}
           </p>
         )}

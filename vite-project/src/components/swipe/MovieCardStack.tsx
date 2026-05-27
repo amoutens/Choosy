@@ -1,4 +1,4 @@
-import { FC } from 'react'
+﻿import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Movie } from '../../api/movies.types'
 import { MovieCard } from './MovieCard'
@@ -122,14 +122,14 @@ export const MovieCardStack: FC<MovieCardStackProps> = ({
         <button
           onClick={() => onDismiss('left')}
           disabled={!!dismissed}
-          className="flex items-center justify-center rounded-full transition-transform active:scale-90"
+          className="flex items-center justify-center rounded-full transition-transform active:scale-90 cursor-pointer disabled:cursor-default"
           style={nopeBtn}
         >
           ✕
         </button>
         <button
           onClick={onEndSession}
-          className="flex flex-col items-center justify-center gap-0.5 rounded-2xl font-[Poppins] transition-transform active:scale-95"
+          className="flex flex-col items-center justify-center gap-0.5 rounded-2xl font-poppins transition-transform active:scale-95 cursor-pointer"
           style={endBtn}
         >
           <span style={{ fontSize: 18, lineHeight: 1 }}>⏹</span>
@@ -138,14 +138,14 @@ export const MovieCardStack: FC<MovieCardStackProps> = ({
         <button
           onClick={() => onDismiss('right')}
           disabled={!!dismissed}
-          className="flex items-center justify-center rounded-full transition-transform active:scale-90"
+          className="flex items-center justify-center rounded-full transition-transform active:scale-90 cursor-pointer disabled:cursor-default"
           style={likeBtn}
         >
           ♥
         </button>
       </div>
 
-      <p className="font-[Poppins] text-[12px]" style={{ color: 'rgba(255,255,255,0.22)' }}>
+      <p className="font-poppins text-[12px]" style={{ color: 'rgba(255,255,255,0.22)' }}>
         {t('movieCardStack.hint')}
       </p>
     </>

@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useRef, useState } from 'react'
+﻿import { FC, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { PageBackground } from '../components/PageBackground'
@@ -264,7 +264,7 @@ const Room: FC = () => {
 
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center gap-8 px-6 pt-24 pb-10">
         <div className="text-center">
-          <p className="font-[Poppins] text-[14px] mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+          <p className="font-poppins text-[14px] mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
             {subtitle}
           </p>
           <h1
@@ -283,18 +283,18 @@ const Room: FC = () => {
               border: '1px solid rgba(255,255,255,0.12)',
             }}
           >
-            <span className="font-[Poppins] text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <span className="font-poppins text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
               {t('room.roomCode')}
             </span>
             <span
-              className="font-[Poppins] font-bold text-[20px] text-white tracking-widest"
+              className="font-poppins font-bold text-[20px] text-white tracking-widest"
               style={{ letterSpacing: '0.25em' }}
             >
               {code}
             </span>
             <button
               onClick={() => navigator.clipboard.writeText(code)}
-              className="font-[Poppins] text-[11px] px-2 py-0.5 rounded-lg transition-opacity hover:opacity-70"
+              className="font-poppins text-[11px] px-2 py-0.5 rounded-lg transition-opacity hover:opacity-70 cursor-pointer"
               style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' }}
             >
               {t('room.copy')}
@@ -304,7 +304,7 @@ const Room: FC = () => {
 
         {error && (
           <div className="flex flex-col items-center gap-3">
-            <p className="font-[Poppins] text-[14px]" style={{ color: '#ff7c7c' }}>
+            <p className="font-poppins text-[14px]" style={{ color: '#ff7c7c' }}>
               {error}
             </p>
             <Button variant="ghost" onClick={() => navigate(ROUTES.DASHBOARD)}>
@@ -367,10 +367,7 @@ const Room: FC = () => {
                   onDismiss={dismiss}
                   onEndSession={handleEndVoting}
                 />
-                <p
-                  className="font-[Poppins] text-[12px]"
-                  style={{ color: 'rgba(255,255,255,0.3)' }}
-                >
+                <p className="font-poppins text-[12px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
                   {t('room.swiped', { count: swipedCount, total: totalCards })}
                 </p>
                 {movieRankings.length > 0 && (
@@ -379,10 +376,7 @@ const Room: FC = () => {
               </>
             ) : (
               <div className="flex flex-col items-center gap-4">
-                <p
-                  className="font-[Poppins] text-[15px]"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
-                >
+                <p className="font-poppins text-[15px]" style={{ color: 'rgba(255,255,255,0.5)' }}>
                   {t('room.noMovies')}
                 </p>
                 <Button variant="ghost" onClick={() => navigate(ROUTES.DASHBOARD)}>

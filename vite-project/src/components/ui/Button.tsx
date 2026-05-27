@@ -1,4 +1,4 @@
-import { FC, ButtonHTMLAttributes, ReactNode } from 'react'
+﻿import { FC, ButtonHTMLAttributes, ReactNode } from 'react'
 import { cn } from '../../lib/utils'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -35,7 +35,7 @@ export const Button: FC<ButtonProps> = ({
 }) => (
   <button
     className={cn(
-      'flex items-center justify-center font-[Poppins] font-semibold rounded-2xl text-white transition-opacity disabled:opacity-60',
+      'flex items-center justify-center font-poppins font-semibold rounded-2xl text-white transition-opacity disabled:opacity-60 cursor-pointer disabled:cursor-default',
       fullWidth && 'w-full',
       className
     )}

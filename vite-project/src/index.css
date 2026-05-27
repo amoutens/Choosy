@@ -1,8 +1,19 @@
 @import 'tailwindcss';
+
+/* ── Decorative fonts ─────────────────────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;700;800&display=swap');
 
-/* Ensure a true black page background in case utilities aren't applied */
+/* ── UI font stack: Poppins (Latin) + Nunito (Cyrillic fallback) ── */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+
+@theme {
+  /* font-poppins Tailwind utility → uses Poppins for Latin, Nunito for Cyrillic */
+  --font-poppins: 'Poppins', 'Nunito', sans-serif;
+}
+
+/* ── Base ─────────────────────────────────────────────────────── */
 html,
 body,
 #root {

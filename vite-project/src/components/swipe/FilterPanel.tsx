@@ -1,4 +1,4 @@
-import { FC } from 'react'
+﻿import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '../ui/Button'
 import { GENRE_OPTIONS, TYPE_OPTIONS } from './swipeConfig'
@@ -25,7 +25,7 @@ const Chip: FC<{ label: string; active: boolean; onClick: () => void }> = ({
 }) => (
   <button
     onClick={onClick}
-    className="font-[Poppins] text-[13px] font-semibold px-4 py-1.5 rounded-full transition-all"
+    className="font-poppins text-[13px] font-semibold px-4 py-1.5 rounded-full transition-all cursor-pointer"
     style={active ? activeChipStyle : inactiveChipStyle}
   >
     {label}
@@ -34,7 +34,7 @@ const Chip: FC<{ label: string; active: boolean; onClick: () => void }> = ({
 
 const SectionLabel: FC<{ children: string }> = ({ children }) => (
   <p
-    className="font-[Poppins] text-[12px] font-semibold uppercase tracking-widest mb-2"
+    className="font-poppins text-[12px] font-semibold uppercase tracking-widest mb-2"
     style={{ color: 'rgba(255,255,255,0.35)' }}
   >
     {children}
@@ -52,7 +52,7 @@ const TextInput: FC<{
     value={value}
     onChange={(e) => onChange(e.target.value)}
     placeholder={placeholder}
-    className="flex-1 min-w-0 font-[Poppins] text-[13px] px-3 py-2 rounded-xl outline-none placeholder:text-white/25"
+    className="flex-1 min-w-0 font-poppins text-[13px] px-3 py-2 rounded-xl outline-none placeholder:text-white/25"
     style={inputStyle}
   />
 )
@@ -179,7 +179,7 @@ export const FilterPanel: FC<FilterPanelProps> = ({
       />
 
       <div className="flex items-center justify-between gap-4 pt-1">
-        <p className="font-[Poppins] text-[13px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+        <p className="font-poppins text-[13px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
           {t('filters.moviesLoadNote')}
         </p>
         <Button
@@ -194,7 +194,7 @@ export const FilterPanel: FC<FilterPanelProps> = ({
 
       {hasFilters && (
         <button
-          className="font-[Poppins] text-[12px] text-center"
+          className="font-poppins text-[12px] text-center cursor-pointer hover:opacity-70 transition-opacity"
           style={{ color: 'rgba(255,255,255,0.3)' }}
           onClick={onResetFilters}
         >

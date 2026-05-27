@@ -1,4 +1,4 @@
-import { FC } from 'react'
+﻿import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Movie } from '../../api/movies.types'
 
@@ -33,7 +33,7 @@ const PlotOverlay: FC<{ movie: Movie }> = ({ movie }) => {
         {movie.Title}
       </h2>
       <p
-        className="font-[Poppins] text-[13px] leading-relaxed mb-3"
+        className="font-poppins text-[13px] leading-relaxed mb-3"
         style={{
           color: 'rgba(255,255,255,0.82)',
           display: '-webkit-box',
@@ -44,7 +44,7 @@ const PlotOverlay: FC<{ movie: Movie }> = ({ movie }) => {
       >
         {movie.Plot}
       </p>
-      <p className="font-[Poppins] text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+      <p className="font-poppins text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
         {t('movieCard.tapToClose')}
       </p>
     </div>
@@ -61,11 +61,11 @@ const CardInfo: FC<{ movie: Movie }> = ({ movie }) => (
         >
           {movie.Title}
         </h2>
-        <p className="font-[Poppins] text-[12px] mt-1" style={{ color: 'rgba(255,255,255,0.65)' }}>
+        <p className="font-poppins text-[12px] mt-1" style={{ color: 'rgba(255,255,255,0.65)' }}>
           {movie.Year} · {movie.Runtime}
         </p>
         <p
-          className="font-[Poppins] text-[11px] mt-0.5 truncate"
+          className="font-poppins text-[11px] mt-0.5 truncate"
           style={{ color: 'rgba(255,255,255,0.45)' }}
         >
           {movie.Genre}
@@ -77,7 +77,7 @@ const CardInfo: FC<{ movie: Movie }> = ({ movie }) => (
           style={{ background: 'rgba(255,255,255,0.14)', backdropFilter: 'blur(8px)' }}
         >
           <span style={{ color: '#facc15', fontSize: 13 }}>★</span>
-          <span className="font-[Poppins] font-semibold text-white" style={{ fontSize: 13 }}>
+          <span className="font-poppins font-semibold text-white" style={{ fontSize: 13 }}>
             {movie.imdbRating}
           </span>
         </div>

@@ -1,4 +1,4 @@
-import { FC } from 'react'
+﻿import { FC } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import ChoosyIcon from '../assets/icons/ChoosyIcon'
@@ -41,7 +41,7 @@ const Home: FC = () => {
         </div>
         <Link
           to={ROUTES.REGISTER}
-          className="flex items-center justify-center font-[Poppins] font-semibold text-[28px] rounded-2xl text-white"
+          className="flex items-center justify-center font-poppins font-semibold text-[28px] rounded-2xl text-white"
           style={{
             width: '300px',
             height: '80px',

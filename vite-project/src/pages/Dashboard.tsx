@@ -1,4 +1,4 @@
-import { FC, useState } from 'react'
+﻿import { FC, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { PageBackground } from '../components/PageBackground'
@@ -53,7 +53,7 @@ const Dashboard: FC = () => {
 
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center gap-10 px-6 pt-20">
         <div className="text-center">
-          <p className="font-[Poppins] text-[14px] mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
+          <p className="font-poppins text-[14px] mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
             {t('dashboard.subtitle')}
           </p>
           <h1
@@ -94,7 +94,7 @@ const Dashboard: FC = () => {
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                 maxLength={6}
-                className="w-full text-center font-[Poppins] font-semibold text-[18px] tracking-widest"
+                className="w-full text-center font-poppins font-semibold text-[18px] tracking-widest"
                 style={{
                   height: '50px',
                   background: 'rgba(255,255,255,0.07)',

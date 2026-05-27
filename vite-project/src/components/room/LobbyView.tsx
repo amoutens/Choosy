@@ -1,4 +1,4 @@
-import { FC } from 'react'
+﻿import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FilterPanel } from '../swipe/FilterPanel'
 import { Spinner } from '../ui/Spinner'
@@ -57,7 +57,7 @@ export const LobbyView: FC<LobbyViewProps> = ({
         }}
       >
         <p
-          className="font-[Poppins] text-[12px] font-semibold uppercase tracking-widest mb-4"
+          className="font-poppins text-[12px] font-semibold uppercase tracking-widest mb-4"
           style={{ color: 'rgba(255,255,255,0.35)' }}
         >
           {t('lobby.participants', { count: roomState.participants.length })}
@@ -74,19 +74,19 @@ export const LobbyView: FC<LobbyViewProps> = ({
                   />
                 ) : (
                   <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center font-[Poppins] font-semibold text-[11px] flex-shrink-0"
+                    className="w-7 h-7 rounded-full flex items-center justify-center font-poppins font-semibold text-[11px] flex-shrink-0"
                     style={{ background: 'linear-gradient(to bottom, #CE9FFC, #7367F0)' }}
                   >
                     {(participant.name || participant.userEmail).charAt(0).toUpperCase()}
                   </div>
                 )}
-                <span className="font-[Poppins] text-[13px] text-white">
+                <span className="font-poppins text-[13px] text-white">
                   {participant.name || participant.userEmail}
                 </span>
               </div>
               {participant.userId === roomState.hostId && (
                 <span
-                  className="font-[Poppins] text-[10px] px-2 py-0.5 rounded-lg"
+                  className="font-poppins text-[10px] px-2 py-0.5 rounded-lg"
                   style={{ background: 'rgba(206,159,252,0.15)', color: '#CE9FFC' }}
                 >
                   {t('lobby.host')}
@@ -101,7 +101,7 @@ export const LobbyView: FC<LobbyViewProps> = ({
         <>
           {startError && (
             <p
-              className="font-[Poppins] text-[13px] text-center max-w-sm"
+              className="font-poppins text-[13px] text-center max-w-sm"
               style={{ color: '#ff7c7c' }}
             >
               {startError}
@@ -129,7 +129,7 @@ export const LobbyView: FC<LobbyViewProps> = ({
       ) : (
         <div className="flex flex-col items-center gap-3">
           <Spinner />
-          <p className="font-[Poppins] text-[14px]" style={{ color: 'rgba(255,255,255,0.5)' }}>
+          <p className="font-poppins text-[14px]" style={{ color: 'rgba(255,255,255,0.5)' }}>
             {t('lobby.waitingForHost')}
           </p>
         </div>

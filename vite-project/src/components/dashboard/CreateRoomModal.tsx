@@ -1,4 +1,4 @@
-import { FC } from 'react'
+﻿import { FC } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Modal } from '../ui/Modal'
@@ -20,13 +20,13 @@ export const CreateRoomModal: FC<CreateRoomModalProps> = ({ code, onClose }) => 
         {t('createRoomModal.title')}
       </h3>
       <p
-        className="font-[Poppins] text-[13px] text-center"
+        className="font-poppins text-[13px] text-center"
         style={{ color: 'rgba(255,255,255,0.5)' }}
       >
         {t('createRoomModal.shareCode')}
       </p>
       <div
-        className="px-8 py-4 rounded-2xl font-[Poppins] font-bold text-[36px] text-white"
+        className="px-8 py-4 rounded-2xl font-poppins font-bold text-[36px] text-white"
         style={{
           background: 'rgba(255,255,255,0.07)',
           border: '1px solid rgba(206,159,252,0.4)',
@@ -51,7 +51,7 @@ export const CreateRoomModal: FC<CreateRoomModalProps> = ({ code, onClose }) => 
       </div>
       <button
         onClick={onClose}
-        className="font-[Poppins] text-[13px]"
+        className="font-poppins text-[13px] cursor-pointer hover:opacity-70 transition-opacity"
         style={{ color: 'rgba(255,255,255,0.4)' }}
       >
         {t('createRoomModal.cancel')}

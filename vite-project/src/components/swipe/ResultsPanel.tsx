@@ -1,4 +1,4 @@
-import { FC, useState } from 'react'
+﻿import { FC, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Movie } from '../../api/movies.types'
 import { Button } from '../ui/Button'
@@ -26,20 +26,20 @@ const MovieThumb: FC<{ movie: Movie }> = ({ movie }) => (
           style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}
         >
           <span style={{ color: '#facc15', fontSize: 10 }}>★</span>
-          <span className="font-[Poppins] font-semibold text-white" style={{ fontSize: 10 }}>
+          <span className="font-poppins font-semibold text-white" style={{ fontSize: 10 }}>
             {movie.imdbRating}
           </span>
         </div>
       )}
     </div>
     <p
-      className="font-[Poppins] text-white font-semibold leading-tight"
+      className="font-poppins text-white font-semibold leading-tight"
       style={{ fontSize: 12 }}
       title={movie.Title}
     >
       {movie.Title.length > 18 ? movie.Title.slice(0, 16) + '…' : movie.Title}
     </p>
-    <p className="font-[Poppins]" style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
+    <p className="font-poppins" style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
       {movie.Year}
     </p>
   </div>
@@ -59,7 +59,7 @@ export const ResultsPanel: FC<ResultsPanelProps> = ({
   return (
     <div className="w-full max-w-lg flex flex-col items-center gap-6">
       <div
-        className="flex gap-8 font-[Poppins] text-[15px]"
+        className="flex gap-8 font-poppins text-[15px]"
         style={{ color: 'rgba(255,255,255,0.6)' }}
       >
         <span style={{ color: '#4ade80' }}>♥ {t('resultsPanel.liked', { count: likedCount })}</span>
@@ -78,17 +78,17 @@ export const ResultsPanel: FC<ResultsPanelProps> = ({
           }}
         >
           <button
-            className="w-full flex items-center justify-between mb-4"
+            className="w-full flex items-center justify-between mb-4 cursor-pointer"
             onClick={() => setExpanded((v) => !v)}
           >
             <p
-              className="font-[Poppins] text-[12px] font-semibold uppercase tracking-widest"
+              className="font-poppins text-[12px] font-semibold uppercase tracking-widest"
               style={{ color: 'rgba(255,255,255,0.35)' }}
             >
               {t('resultsPanel.likedMovies')}
             </p>
             <span
-              className="font-[Poppins] text-[12px] transition-transform"
+              className="font-poppins text-[12px] transition-transform"
               style={{
                 color: 'rgba(255,255,255,0.3)',
                 display: 'inline-block',
@@ -108,7 +108,7 @@ export const ResultsPanel: FC<ResultsPanelProps> = ({
           )}
         </div>
       ) : (
-        <p className="font-[Poppins] text-[15px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+        <p className="font-poppins text-[15px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
           {t('resultsPanel.noLikedMovies')}
         </p>
       )}

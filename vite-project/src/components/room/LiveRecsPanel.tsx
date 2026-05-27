@@ -1,4 +1,4 @@
-import { FC } from 'react'
+﻿import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Movie } from '../../api/movies.types'
 import { MovieRanking } from '../../hooks/useRoomSocket'
@@ -19,7 +19,7 @@ export const LiveRecsPanel: FC<Props> = ({ rankings, allMovies }) => {
   return (
     <div className="flex flex-col items-center gap-2 w-full max-w-xs">
       <p
-        className="font-[Poppins] text-[11px] uppercase tracking-widest"
+        className="font-poppins text-[11px] uppercase tracking-widest"
         style={{ color: 'rgba(255,255,255,0.3)' }}
       >
         {t('liveRecs.groupTopPicks')}
@@ -34,7 +34,7 @@ export const LiveRecsPanel: FC<Props> = ({ rankings, allMovies }) => {
               style={{ width: 48, height: 72 }}
             />
             <div
-              className="absolute top-1 left-1 font-[Poppins] font-bold rounded-md px-1"
+              className="absolute top-1 left-1 font-poppins font-bold rounded-md px-1"
               style={{
                 fontSize: 9,
                 background: 'rgba(0,0,0,0.65)',

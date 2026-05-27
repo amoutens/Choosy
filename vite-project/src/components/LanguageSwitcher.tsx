@@ -1,4 +1,4 @@
-import { FC } from 'react'
+﻿import { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 
 export const LanguageSwitcher: FC = () => {
@@ -11,14 +11,14 @@ export const LanguageSwitcher: FC = () => {
 
   return (
     <div
-      className="flex items-center rounded-xl overflow-hidden font-[Poppins] text-[12px] font-semibold"
+      className="flex items-center rounded-xl overflow-hidden font-poppins text-[12px] font-semibold"
       style={{ border: '1px solid rgba(255,255,255,0.15)' }}
     >
       {(['uk', 'en'] as const).map((lang) => (
         <button
           key={lang}
           onClick={() => toggle(lang)}
-          className="px-3 py-1.5 transition-all"
+          className="px-3 py-1.5 transition-all cursor-pointer"
           style={
             current === lang
               ? { background: 'rgba(206,159,252,0.25)', color: '#CE9FFC' }

@@ -1,4 +1,4 @@
-import { FC } from 'react'
+﻿import { FC } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Modal } from '../ui/Modal'
@@ -18,7 +18,7 @@ export const JoinRoomModal: FC<JoinRoomModalProps> = ({ code, onClose }) => {
     <Modal onClose={onClose}>
       <h3 className="font-['Abril_Fatface'] text-[32px] text-white">{t('joinRoomModal.title')}</h3>
       <div
-        className="px-8 py-4 rounded-2xl font-[Poppins] font-bold text-[36px] text-white"
+        className="px-8 py-4 rounded-2xl font-poppins font-bold text-[36px] text-white"
         style={{
           background: 'rgba(255,255,255,0.07)',
           border: '1px solid rgba(206,159,252,0.4)',

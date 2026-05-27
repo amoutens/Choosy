@@ -1,4 +1,4 @@
-import { FC, useRef, useState, useEffect } from 'react'
+﻿import { FC, useRef, useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import AuthLayout from '../components/AuthLayout'
@@ -128,7 +128,7 @@ const Profile: FC = () => {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="font-[Poppins] text-[13px] px-4 py-1.5 rounded-xl text-white disabled:opacity-50"
+              className="font-poppins text-[13px] px-4 py-1.5 rounded-xl text-white disabled:opacity-50 cursor-pointer disabled:cursor-default"
               style={{ background: 'linear-gradient(to bottom, #CE9FFC, #7367F0)' }}
             >
               {saving ? t('profile.saving') : t('profile.save')}
@@ -139,7 +139,7 @@ const Profile: FC = () => {
                 setError('')
               }}
               disabled={saving}
-              className="font-[Poppins] text-[13px] px-4 py-1.5 rounded-xl disabled:opacity-50"
+              className="font-poppins text-[13px] px-4 py-1.5 rounded-xl disabled:opacity-50 cursor-pointer disabled:cursor-default"
               style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}
             >
               {t('profile.cancel')}
@@ -149,24 +149,24 @@ const Profile: FC = () => {
           <button
             onClick={handleRemove}
             disabled={saving}
-            className="font-[Poppins] text-[12px] disabled:opacity-50"
+            className="font-poppins text-[12px] disabled:opacity-50 cursor-pointer disabled:cursor-default"
             style={{ color: '#ff7c7c' }}
           >
             {saving ? t('profile.removing') : t('profile.removePhoto')}
           </button>
         ) : (
-          <p className="font-[Poppins] text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <p className="font-poppins text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
             {t('profile.clickToUpload')}
           </p>
         )}
 
         {error && (
-          <p className="font-[Poppins] text-[12px]" style={{ color: '#ff7c7c' }}>
+          <p className="font-poppins text-[12px]" style={{ color: '#ff7c7c' }}>
             {error}
           </p>
         )}
 
-        <p className="font-[Poppins] text-[13px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+        <p className="font-poppins text-[13px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
           {t('profile.id', { id: user.sub })}
         </p>
       </div>
@@ -187,13 +187,13 @@ const Profile: FC = () => {
           }}
         >
           <div className="flex items-center justify-between mb-1">
-            <p className="font-[Poppins] text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <p className="font-poppins text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
               {t('profile.name')}
             </p>
             {!editingName && (
               <button
                 onClick={handleNameEdit}
-                className="font-[Poppins] text-[11px] hover:opacity-70 transition-opacity"
+                className="font-poppins text-[11px] hover:opacity-70 transition-opacity cursor-pointer"
                 style={{ color: '#CE9FFC' }}
               >
                 {t('profile.edit')}
@@ -207,13 +207,13 @@ const Profile: FC = () => {
                 value={nameInput}
                 onChange={(e) => setNameInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleNameSave()}
-                className="flex-1 font-[Poppins] text-[15px] text-white bg-transparent border-b outline-none"
+                className="flex-1 font-poppins text-[15px] text-white bg-transparent border-b outline-none"
                 style={{ borderColor: 'rgba(206,159,252,0.5)' }}
               />
               <button
                 onClick={handleNameSave}
                 disabled={saving}
-                className="font-[Poppins] text-[12px] px-3 py-1 rounded-xl disabled:opacity-50"
+                className="font-poppins text-[12px] px-3 py-1 rounded-xl disabled:opacity-50 cursor-pointer disabled:cursor-default"
                 style={{
                   background: 'linear-gradient(to bottom, #CE9FFC, #7367F0)',
                   color: '#fff',
@@ -224,14 +224,14 @@ const Profile: FC = () => {
               <button
                 onClick={() => setEditingName(false)}
                 disabled={saving}
-                className="font-[Poppins] text-[12px] px-3 py-1 rounded-xl disabled:opacity-50"
+                className="font-poppins text-[12px] px-3 py-1 rounded-xl disabled:opacity-50 cursor-pointer disabled:cursor-default"
                 style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}
               >
                 {t('profile.cancel')}
               </button>
             </div>
           ) : (
-            <p className="font-[Poppins] text-[15px] text-white">
+            <p className="font-poppins text-[15px] text-white">
               {name || (
                 <span style={{ color: 'rgba(255,255,255,0.3)' }}>{t('profile.notSet')}</span>
               )}
@@ -246,17 +246,17 @@ const Profile: FC = () => {
             border: '1px solid rgba(255,255,255,0.12)',
           }}
         >
-          <p className="font-[Poppins] text-[11px] mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <p className="font-poppins text-[11px] mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
             {t('profile.email')}
           </p>
-          <p className="font-[Poppins] text-[15px] text-white">{user.email}</p>
+          <p className="font-poppins text-[15px] text-white">{user.email}</p>
         </div>
       </div>
 
       <div className="flex flex-col gap-3">
         <Link
           to={ROUTES.DASHBOARD}
-          className="flex items-center justify-center font-[Poppins] font-semibold text-[16px] rounded-2xl text-white"
+          className="flex items-center justify-center font-poppins font-semibold text-[16px] rounded-2xl text-white"
           style={{
             height: '50px',
             background: 'linear-gradient(to bottom, #CE9FFC, #A582F7, #7367F0)',
