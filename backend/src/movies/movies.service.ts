@@ -18,23 +18,33 @@ const SORT_OPTIONS = [
 @Injectable()
 export class MoviesService {
   async getMovies(filters: MovieFilters): Promise<MoviesResult> {
-    try {
-      const res = await fetch(
-        `${IMDB_API_BASE}/titles?${this.buildParams(filters)}`,
-      );
-      if (!res.ok) return { movies: [], nextPageToken: null };
+    const url = `${IMDB_API_BASE}/titles?${this.buildParams(filters)}`;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const res = await fetch(url);
+        if (res.status === 429) {
+          if (attempt < 2) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, 1500 * (attempt + 1)),
+            );
+            continue;
+          }
+          return { movies: [], nextPageToken: null };
+        }
+        if (!res.ok) return { movies: [], nextPageToken: null };
 
-      const data = (await res.json()) as ImdbResponse;
-      const movies = this.shuffle(
-        (data.titles ?? [])
-          .filter((t) => Boolean(t.primaryImage?.url))
-          .map((t) => this.mapTitle(t)),
-      );
-
-      return { movies, nextPageToken: data.nextPageToken ?? null };
-    } catch {
-      return { movies: [], nextPageToken: null };
+        const data = (await res.json()) as ImdbResponse;
+        const movies = this.shuffle(
+          (data.titles ?? [])
+            .filter((t) => Boolean(t.primaryImage?.url))
+            .map((t) => this.mapTitle(t)),
+        );
+        return { movies, nextPageToken: data.nextPageToken ?? null };
+      } catch {
+        return { movies: [], nextPageToken: null };
+      }
     }
+    return { movies: [], nextPageToken: null };
   }
 
   private buildParams(filters: MovieFilters): URLSearchParams {

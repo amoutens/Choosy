@@ -1,4 +1,4 @@
-﻿import { FC } from 'react'
+﻿import { FC, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Movie } from '../../api/movies.types'
 import { MovieCard } from './MovieCard'
@@ -68,11 +68,18 @@ export const MovieCardStack: FC<MovieCardStackProps> = ({
   onEndSession,
 }) => {
   const { t } = useTranslation()
+
+  useEffect(() => {
+    if (next?.Poster) new Image().src = next.Poster
+    if (nextNext?.Poster) new Image().src = nextNext.Poster
+  }, [next?.imdbID, next?.Poster, nextNext?.imdbID, nextNext?.Poster])
+
   return (
     <>
       <div className="relative select-none" style={{ width: 310, height: 450 }}>
         {nextNext && (
           <div
+            key={nextNext.imdbID}
             className="absolute inset-0 rounded-3xl"
             style={{
               transform: 'scale(0.88) translateY(22px)',
@@ -84,6 +91,7 @@ export const MovieCardStack: FC<MovieCardStackProps> = ({
         )}
         {next && (
           <div
+            key={next.imdbID}
             className="absolute inset-0 rounded-3xl overflow-hidden"
             style={{ transform: 'scale(0.94) translateY(11px)', zIndex: 2 }}
           >
