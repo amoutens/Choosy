@@ -15,36 +15,53 @@ const SORT_OPTIONS = [
   'SORT_BY_USER_RATING_COUNT',
 ] as const;
 
+export class ExternalApiError extends Error {
+  constructor(
+    public readonly httpStatus: number | null,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'ExternalApiError';
+  }
+}
+
 @Injectable()
 export class MoviesService {
   async getMovies(filters: MovieFilters): Promise<MoviesResult> {
     const url = `${IMDB_API_BASE}/titles?${this.buildParams(filters)}`;
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        const res = await fetch(url);
-        if (res.status === 429) {
-          if (attempt < 2) {
-            await new Promise((resolve) =>
-              setTimeout(resolve, 1500 * (attempt + 1)),
-            );
-            continue;
-          }
-          return { movies: [], nextPageToken: null };
-        }
-        if (!res.ok) return { movies: [], nextPageToken: null };
 
-        const data = (await res.json()) as ImdbResponse;
-        const movies = this.shuffle(
-          (data.titles ?? [])
-            .filter((t) => Boolean(t.primaryImage?.url))
-            .map((t) => this.mapTitle(t)),
-        );
-        return { movies, nextPageToken: data.nextPageToken ?? null };
-      } catch {
-        return { movies: [], nextPageToken: null };
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const res = await fetch(url).catch(() => {
+        throw new ExternalApiError(null, 'Failed to reach movie API');
+      });
+
+      if (res.status === 429) {
+        if (attempt < 2) {
+          await new Promise<void>((resolve) =>
+            setTimeout(resolve, 1500 * (attempt + 1)),
+          );
+          continue;
+        }
+        throw new ExternalApiError(429, 'Movie API rate limit exceeded');
       }
+
+      if (!res.ok) {
+        throw new ExternalApiError(
+          res.status,
+          `Movie API returned ${res.status}`,
+        );
+      }
+
+      const data = (await res.json()) as ImdbResponse;
+      const movies = this.shuffle(
+        (data.titles ?? [])
+          .filter((t) => Boolean(t.primaryImage?.url))
+          .map((t) => this.mapTitle(t)),
+      );
+      return { movies, nextPageToken: data.nextPageToken ?? null };
     }
-    return { movies: [], nextPageToken: null };
+
+    throw new ExternalApiError(429, 'Movie API rate limit exceeded');
   }
 
   private buildParams(filters: MovieFilters): URLSearchParams {
