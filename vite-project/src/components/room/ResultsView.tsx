@@ -1,4 +1,5 @@
-import { FC, useState } from 'react'
+﻿import { FC, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '../ui/Button'
 import { Movie } from '../../api/movies.types'
 import { RoomState, RoomResults } from '../../api/rooms'
@@ -11,15 +12,15 @@ interface SectionToggleProps {
 }
 
 const SectionToggle: FC<SectionToggleProps> = ({ label, color, open, onToggle }) => (
-  <button className="flex items-center gap-2 w-full mb-3" onClick={onToggle}>
+  <button className="flex items-center gap-2 w-full mb-3 cursor-pointer" onClick={onToggle}>
     <p
-      className="font-[Poppins] text-[12px] font-semibold uppercase tracking-widest"
+      className="font-poppins text-[12px] font-semibold uppercase tracking-widest"
       style={{ color }}
     >
       {label}
     </p>
     <span
-      className="font-[Poppins] text-[10px] transition-transform"
+      className="font-poppins text-[10px] transition-transform"
       style={{ color, transform: open ? 'rotate(0deg)' : 'rotate(-90deg)' }}
     >
       ▾
@@ -60,7 +61,7 @@ const MovieResultCard: FC<MovieResultCardProps> = ({ movie, likeCount, total, sc
             {genres.map((genre) => (
               <span
                 key={genre}
-                className="font-[Poppins] px-1.5 py-0.5 rounded-md"
+                className="font-poppins px-1.5 py-0.5 rounded-md"
                 style={{ fontSize: 9, background: 'rgba(206,159,252,0.2)', color: '#CE9FFC' }}
               >
                 {genre}
@@ -80,7 +81,7 @@ const MovieResultCard: FC<MovieResultCardProps> = ({ movie, likeCount, total, sc
             ♥
           </span>
           <span
-            className="font-[Poppins] font-semibold"
+            className="font-poppins font-semibold"
             style={{ fontSize: 10, color: isMatch ? '#4ade80' : 'rgba(255,255,255,0.7)' }}
           >
             {likeCount}/{total}
@@ -93,7 +94,7 @@ const MovieResultCard: FC<MovieResultCardProps> = ({ movie, likeCount, total, sc
             style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}
           >
             <span style={{ color: '#facc15', fontSize: 9 }}>★</span>
-            <span className="font-[Poppins] font-semibold text-white" style={{ fontSize: 10 }}>
+            <span className="font-poppins font-semibold text-white" style={{ fontSize: 10 }}>
               {movie.imdbRating}
             </span>
           </div>
@@ -101,18 +102,18 @@ const MovieResultCard: FC<MovieResultCardProps> = ({ movie, likeCount, total, sc
       </div>
 
       <p
-        className="font-[Poppins] text-white font-semibold leading-tight"
+        className="font-poppins text-white font-semibold leading-tight"
         style={{ fontSize: 12 }}
         title={movie.Title}
       >
         {movie.Title.length > 18 ? movie.Title.slice(0, 16) + '…' : movie.Title}
       </p>
       <div className="flex items-center justify-between">
-        <p className="font-[Poppins]" style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
+        <p className="font-poppins" style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
           {movie.Year}
         </p>
         <p
-          className="font-[Poppins] font-semibold"
+          className="font-poppins font-semibold"
           style={{ fontSize: 10, color: score > 0 ? '#CE9FFC' : 'rgba(255,255,255,0.25)' }}
         >
           {score > 0 ? '+' : ''}
@@ -130,6 +131,7 @@ export interface ResultsViewProps {
 }
 
 export const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDashboard }) => {
+  const { t } = useTranslation()
   const total = participants.length
   const alpha = results.movies[0]?.alpha ?? 1
   const likedMovies = results.movies.filter((result) => result.likeCount > 0)
@@ -140,21 +142,25 @@ export const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDas
 
   return (
     <div className="w-full max-w-lg flex flex-col items-center gap-6">
-      <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 font-[Poppins] text-[13px]">
-        <span style={{ color: '#4ade80' }}>★ {everyoneLiked.length} everyone liked</span>
-        <span style={{ color: 'rgba(255,255,255,0.35)' }}>{likedMovies.length} picks</span>
+      <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 font-poppins text-[13px]">
+        <span style={{ color: '#4ade80' }}>
+          ★ {t('results.everyoneLiked', { count: everyoneLiked.length })}
+        </span>
+        <span style={{ color: 'rgba(255,255,255,0.35)' }}>
+          {t('results.picks', { count: likedMovies.length })}
+        </span>
         <span
           className="px-2 py-0.5 rounded-lg"
           style={{ background: 'rgba(206,159,252,0.12)', color: '#CE9FFC' }}
-          title="Algorithm balance: 1.0 = average only, 0.0 = least misery only"
+          title={t('results.algorithmBalance')}
         >
           α = {alpha.toFixed(2)}
         </span>
       </div>
 
       {likedMovies.length === 0 ? (
-        <p className="font-[Poppins] text-[15px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          No one liked any movies
+        <p className="font-poppins text-[15px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          {t('results.noLikes')}
         </p>
       ) : (
         <div
@@ -168,7 +174,7 @@ export const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDas
           {everyoneLiked.length > 0 && (
             <div>
               <SectionToggle
-                label="Everyone liked"
+                label={t('results.sectionEveryoneLiked')}
                 color="#4ade80"
                 open={showEveryoneLiked}
                 onToggle={() => setShowEveryoneLiked((prev) => !prev)}
@@ -192,7 +198,7 @@ export const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDas
           {someLiked.length > 0 && (
             <div>
               <SectionToggle
-                label="Also liked"
+                label={t('results.sectionAlsoLiked')}
                 color="rgba(255,255,255,0.35)"
                 open={showSomeLiked}
                 onToggle={() => setShowSomeLiked((prev) => !prev)}
@@ -216,7 +222,7 @@ export const ResultsView: FC<ResultsViewProps> = ({ results, participants, onDas
       )}
 
       <Button onClick={onDashboard} style={{ paddingLeft: 32, paddingRight: 32 }}>
-        Back to Dashboard
+        {t('results.backToDashboard')}
       </Button>
     </div>
   )

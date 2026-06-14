@@ -1,4 +1,4 @@
-import { FC } from 'react'
+﻿import { FC } from 'react'
 
 interface AvatarProps {
   email: string
@@ -22,7 +22,7 @@ export const Avatar: FC<AvatarProps> = ({ email, src, size = 'sm' }) => {
 
   return (
     <div
-      className={`${sizes[size]} rounded-full flex items-center justify-center font-[Poppins] font-bold text-white flex-shrink-0`}
+      className={`${sizes[size]} rounded-full flex items-center justify-center font-poppins font-bold text-white flex-shrink-0`}
       style={{ background: 'linear-gradient(135deg, #CE9FFC, #7367F0)' }}
     >
       {email ? email[0].toUpperCase() : '?'}

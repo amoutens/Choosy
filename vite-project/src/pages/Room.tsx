@@ -1,5 +1,6 @@
-import { FC, useCallback, useEffect, useRef, useState } from 'react'
+﻿import { FC, useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { PageBackground } from '../components/PageBackground'
 import { Logo } from '../components/Logo'
 import { UserMenu } from '../components/UserMenu'
@@ -10,6 +11,7 @@ import { LobbyView } from '../components/room/LobbyView'
 import { LiveRecsPanel } from '../components/room/LiveRecsPanel'
 import { WaitingResultsView } from '../components/room/WaitingResultsView'
 import { ResultsView } from '../components/room/ResultsView'
+import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { useRequireAuth, logout } from '../lib/token'
 import { useSwipeMechanics } from '../hooks/useSwipeMechanics'
 import { useRoomSocket, MovieRanking } from '../hooks/useRoomSocket'
@@ -36,6 +38,7 @@ enum LocalPhase {
 }
 
 const Room: FC = () => {
+  const { t } = useTranslation()
   const { code } = useParams<{ code: string }>()
   const navigate = useNavigate()
   const user = useRequireAuth()
@@ -141,12 +144,14 @@ const Room: FC = () => {
         setVotingMovies((prev) => {
           if (prev.length === 0) return prev
           const [top, ...rest] = prev
-          // Re-sort the unseen tail to match the server's canonical ranked order
+          if (newMovies.length === 0) return prev
+          // Protect the nearest 3 unseen movies from re-ordering — only sort the tail
           const serverOrder = new Map(state.movies.map((m, i) => [m.imdbID, i]))
-          const sortedRest = [...rest, ...newMovies].sort(
+          const stableHead = rest.slice(0, 3)
+          const sortedTail = [...rest.slice(3), ...newMovies].sort(
             (a, b) => (serverOrder.get(a.imdbID) ?? 999) - (serverOrder.get(b.imdbID) ?? 999)
           )
-          return [top, ...sortedRest]
+          return [top, ...stableHead, ...sortedTail]
         })
         return
       }
@@ -192,15 +197,6 @@ const Room: FC = () => {
     (state) => applyServerStateRef.current(state),
     (rankings) => {
       setMovieRankings(rankings)
-      setVotingMovies((prev) => {
-        if (prev.length <= 1) return prev
-        const [top, ...rest] = prev
-        const scoreMap = new Map(rankings.map((r) => [r.imdbID, r.score]))
-        return [
-          top,
-          ...rest.sort((a, b) => (scoreMap.get(b.imdbID) ?? 0) - (scoreMap.get(a.imdbID) ?? 0)),
-        ]
-      })
     }
   )
 
@@ -237,28 +233,31 @@ const Room: FC = () => {
 
   const subtitle =
     localPhase === LocalPhase.Results
-      ? 'session complete'
+      ? t('room.subtitleComplete')
       : localPhase === LocalPhase.Voting || localPhase === LocalPhase.Done
-        ? 'swiping together'
-        : 'group session'
+        ? t('room.subtitleSwiping')
+        : t('room.subtitleGroup')
 
   const title =
     localPhase === LocalPhase.Results
-      ? 'Group Picks'
+      ? t('room.titleResults')
       : localPhase === LocalPhase.Voting || localPhase === LocalPhase.Done
-        ? 'Pick Your Movie'
-        : 'Room'
+        ? t('room.titleVoting')
+        : t('room.titleLobby')
 
   return (
     <PageBackground>
       <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-between px-10 py-5">
         <Logo />
-        <UserMenu email={user.email} userId={user.sub} onLogout={() => logout(navigate)} />
+        <div className="flex items-center gap-4">
+          <LanguageSwitcher />
+          <UserMenu email={user.email} userId={user.sub} onLogout={() => logout(navigate)} />
+        </div>
       </div>
 
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center gap-8 px-6 pt-24 pb-10">
         <div className="text-center">
-          <p className="font-[Poppins] text-[14px] mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+          <p className="font-poppins text-[14px] mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
             {subtitle}
           </p>
           <h1
@@ -277,32 +276,32 @@ const Room: FC = () => {
               border: '1px solid rgba(255,255,255,0.12)',
             }}
           >
-            <span className="font-[Poppins] text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
-              room code
+            <span className="font-poppins text-[12px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+              {t('room.roomCode')}
             </span>
             <span
-              className="font-[Poppins] font-bold text-[20px] text-white tracking-widest"
+              className="font-poppins font-bold text-[20px] text-white tracking-widest"
               style={{ letterSpacing: '0.25em' }}
             >
               {code}
             </span>
             <button
               onClick={() => navigator.clipboard.writeText(code)}
-              className="font-[Poppins] text-[11px] px-2 py-0.5 rounded-lg transition-opacity hover:opacity-70"
+              className="font-poppins text-[11px] px-2 py-0.5 rounded-lg transition-opacity hover:opacity-70 cursor-pointer"
               style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' }}
             >
-              copy
+              {t('room.copy')}
             </button>
           </div>
         )}
 
         {error && (
           <div className="flex flex-col items-center gap-3">
-            <p className="font-[Poppins] text-[14px]" style={{ color: '#ff7c7c' }}>
+            <p className="font-poppins text-[14px]" style={{ color: '#ff7c7c' }}>
               {error}
             </p>
             <Button variant="ghost" onClick={() => navigate(ROUTES.DASHBOARD)}>
-              Back to Dashboard
+              {t('room.backToDashboard')}
             </Button>
           </div>
         )}
@@ -361,26 +360,20 @@ const Room: FC = () => {
                   onDismiss={dismiss}
                   onEndSession={handleEndVoting}
                 />
-                <p
-                  className="font-[Poppins] text-[12px]"
-                  style={{ color: 'rgba(255,255,255,0.3)' }}
-                >
-                  {swipedCount} / {totalCards} swiped
+                <p className="font-poppins text-[12px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                  {t('room.swiped', { count: swipedCount, total: totalCards })}
                 </p>
-                {movieRankings.length > 0 && (
+                {movieRankings.some((r) => r.likeCount > 0) && (
                   <LiveRecsPanel rankings={movieRankings} allMovies={allMovies} />
                 )}
               </>
             ) : (
               <div className="flex flex-col items-center gap-4">
-                <p
-                  className="font-[Poppins] text-[15px]"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
-                >
-                  No movies to swipe
+                <p className="font-poppins text-[15px]" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  {t('room.noMovies')}
                 </p>
                 <Button variant="ghost" onClick={() => navigate(ROUTES.DASHBOARD)}>
-                  Back to Dashboard
+                  {t('room.backToDashboard')}
                 </Button>
               </div>
             )}

@@ -1,15 +1,18 @@
 import {
   BadRequestException,
   ForbiddenException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Room } from './room.entity';
 import { RoomParticipant } from './room-participant.entity';
 import { RoomVote } from './room-vote.entity';
-import { MoviesService } from '../movies/movies.service';
+import { ExternalApiError, MoviesService } from '../movies/movies.service';
 import { UsersService } from '../users/users.service';
 import { Movie, MovieFilters } from '../movies/movies.types';
 import { RoomState, RoomResults } from './rooms.types';
@@ -82,9 +85,19 @@ export class RoomsService {
       throw new BadRequestException('Room has already started');
     }
 
-    await this.participantRepo.save(
-      this.participantRepo.create({ roomId: room.id, userId, userEmail }),
-    );
+    try {
+      await this.participantRepo.save(
+        this.participantRepo.create({ roomId: room.id, userId, userEmail }),
+      );
+    } catch (err: unknown) {
+      const isUniqueViolation =
+        typeof err === 'object' &&
+        err !== null &&
+        'code' in err &&
+        (err as { code: string }).code === '23505';
+      if (!isUniqueViolation) throw err;
+      return;
+    }
 
     this.gateway.emitRoomUpdated(code, await this.getState(code));
   }
@@ -103,15 +116,45 @@ export class RoomsService {
       throw new BadRequestException('Room has already started');
     }
 
-    const firstPage = await this.moviesService.getMovies(filters);
-    let movies = firstPage.movies;
+    let movies: Movie[];
+    try {
+      const firstPage = await this.moviesService.getMovies(filters);
+      movies = firstPage.movies;
 
-    if (movies.length < 15 && firstPage.nextPageToken) {
-      const secondPage = await this.moviesService.getMovies({
-        ...filters,
-        pageToken: firstPage.nextPageToken,
-      });
-      movies = [...movies, ...secondPage.movies];
+      if (movies.length < 15 && firstPage.nextPageToken) {
+        try {
+          const secondPage = await this.moviesService.getMovies({
+            ...filters,
+            pageToken: firstPage.nextPageToken,
+          });
+          movies = [...movies, ...secondPage.movies];
+        } catch {
+          // second page is best-effort; proceed with what we have
+        }
+      }
+
+      if (movies.length === 0) {
+        const relaxed = await this.moviesService.getMovies({
+          ...filters,
+          genres: undefined,
+          minRating: undefined,
+          maxRating: undefined,
+        });
+        movies = relaxed.movies;
+      }
+    } catch (err) {
+      if (err instanceof ExternalApiError) {
+        if (err.httpStatus === 429) {
+          throw new HttpException(
+            'Movie API rate limit reached. Please wait a moment and try again.',
+            HttpStatus.TOO_MANY_REQUESTS,
+          );
+        }
+        throw new ServiceUnavailableException(
+          'Movie API is temporarily unavailable. Please try again later.',
+        );
+      }
+      throw err;
     }
 
     if (movies.length === 0) {
@@ -223,6 +266,7 @@ export class RoomsService {
       ranked.map((result) => ({
         imdbID: result.movie.imdbID,
         score: result.score,
+        likeCount: result.likeCount,
       })),
     );
 

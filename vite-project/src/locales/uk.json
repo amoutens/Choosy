@@ -1,0 +1,188 @@
+{
+  "home": {
+    "tagline": "Не Сперечайся",
+    "cta": "Почати"
+  },
+  "auth": {
+    "somethingWentWrong": "Щось пішло не так",
+    "login": {
+      "title": "З поверненням",
+      "noAccount": "Немає акаунту?",
+      "signUp": "Зареєструватись",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "password": "Пароль",
+      "passwordPlaceholder": "Ваш пароль",
+      "signingIn": "Вхід…",
+      "signIn": "Увійти"
+    },
+    "register": {
+      "title": "Створити акаунт",
+      "hasAccount": "Вже є акаунт?",
+      "signIn": "Увійти",
+      "name": "Ім'я (необов'язково)",
+      "namePlaceholder": "Ваше ім'я",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "password": "Пароль",
+      "passwordPlaceholder": "Мін. 6 символів",
+      "creating": "Створення…",
+      "signUp": "Зареєструватись"
+    }
+  },
+  "dashboard": {
+    "subtitle": "що обираємо?",
+    "title": "Обери Фільм",
+    "soloSwipe": "Соло",
+    "createRoom": "Створити кімнату",
+    "createRoomDesc": "Почни сесію та запроси друзів голосувати",
+    "create": "Створити",
+    "creating": "Створення…",
+    "joinRoom": "Приєднатись",
+    "joinRoomDesc": "Введи код кімнати, щоб приєднатись до друзів",
+    "roomCodePlaceholder": "Код кімнати",
+    "join": "Приєднатись"
+  },
+  "profile": {
+    "title": "Мій профіль",
+    "clickToUpload": "Натисни, щоб завантажити фото",
+    "saving": "Збереження…",
+    "save": "Зберегти",
+    "cancel": "Скасувати",
+    "removing": "Видалення…",
+    "removePhoto": "Видалити фото",
+    "id": "ID: {{id}}",
+    "name": "Ім'я",
+    "edit": "Редагувати",
+    "notSet": "Не вказано",
+    "email": "Email",
+    "backToDashboard": "На головну",
+    "logOut": "Вийти",
+    "failedToSave": "Не вдалося зберегти. Спробуй ще.",
+    "failedToRemove": "Не вдалося видалити. Спробуй ще.",
+    "failedToSaveName": "Не вдалося зберегти ім'я. Спробуй ще."
+  },
+  "room": {
+    "subtitleComplete": "сесію завершено",
+    "subtitleSwiping": "свайпаємо разом",
+    "subtitleGroup": "групова сесія",
+    "titleResults": "Вибір групи",
+    "titleVoting": "Обери фільм",
+    "titleLobby": "Кімната",
+    "roomCode": "код кімнати",
+    "copy": "копіювати",
+    "backToDashboard": "На головну",
+    "noMovies": "Фільмів для свайпу немає",
+    "swiped": "{{count}} / {{total}} переглянуто"
+  },
+  "swipe": {
+    "subtitleComplete": "сесію завершено",
+    "subtitleReady": "що обираємо?",
+    "titleResults": "Твої вибори",
+    "titleSwiping": "Обери фільм",
+    "noMovies": "Фільмів за цими фільтрами не знайдено",
+    "changeFilters": "Змінити фільтри",
+    "loadingMovies": "Завантаження фільмів…",
+    "loadingMore": "завантаження…"
+  },
+  "userMenu": {
+    "myProfile": "Мій профіль",
+    "logOut": "Вийти"
+  },
+  "createRoomModal": {
+    "title": "Кімнату створено!",
+    "shareCode": "Поділись кодом з друзями",
+    "copyCode": "Скопіювати код",
+    "start": "Почати",
+    "cancel": "Скасувати"
+  },
+  "joinRoomModal": {
+    "title": "Приєднання до кімнати",
+    "back": "Назад",
+    "join": "Приєднатись"
+  },
+  "lobby": {
+    "participants": "Учасники ({{count}})",
+    "host": "хост",
+    "loadingMovies": "Завантаження фільмів…",
+    "startVoting": "Почати голосування",
+    "waitingForHost": "Очікуємо на хоста…"
+  },
+  "liveRecs": {
+    "groupTopPicks": "Топ вибори групи"
+  },
+  "results": {
+    "everyoneLiked": "{{count}} всім сподобались",
+    "picks": "{{count}} вибори",
+    "algorithmBalance": "Баланс алгоритму: 1.0 = середнє, 0.0 = найменше страждання",
+    "noLikes": "Нікому не сподобались фільми",
+    "sectionEveryoneLiked": "Всім сподобались",
+    "sectionAlsoLiked": "Також сподобались",
+    "backToDashboard": "На головну"
+  },
+  "waitingResults": {
+    "waiting": "Очікуємо на всіх…",
+    "finished": "{{count}} / {{total}} завершили"
+  },
+  "filters": {
+    "contentType": "Тип контенту",
+    "genre": "Жанр",
+    "year": "Рік",
+    "from": "Від",
+    "to": "До",
+    "imdbRating": "Рейтинг IMDb",
+    "minRating": "Мін (1–10)",
+    "maxRating": "Макс (1–10)",
+    "moviesLoadNote": "Фільми завантажуються під час свайпу",
+    "loading": "Завантаження…",
+    "startSwiping": "Почати свайпати →",
+    "resetFilters": "Скинути фільтри",
+    "types": {
+      "MOVIE": "Фільм",
+      "TV_SERIES": "Серіал",
+      "TV_MINI_SERIES": "Міні-серіал",
+      "TV_MOVIE": "Телефільм",
+      "SHORT": "Короткометражка"
+    },
+    "genres": {
+      "Action": "Бойовик",
+      "Adventure": "Пригоди",
+      "Animation": "Анімація",
+      "Biography": "Біографія",
+      "Comedy": "Комедія",
+      "Crime": "Кримінал",
+      "Documentary": "Документальний",
+      "Drama": "Драма",
+      "Family": "Сімейний",
+      "Fantasy": "Фентезі",
+      "History": "Історичний",
+      "Horror": "Жахи",
+      "Music": "Музичний",
+      "Mystery": "Містика",
+      "Romance": "Романтика",
+      "Sci-Fi": "Фантастика",
+      "Sport": "Спортивний",
+      "Thriller": "Трилер",
+      "War": "Воєнний",
+      "Western": "Вестерн"
+    }
+  },
+  "movieCard": {
+    "like": "ТАК",
+    "nope": "НІ",
+    "tapToClose": "торкнись, щоб закрити"
+  },
+  "movieCardStack": {
+    "end": "Кінець",
+    "hint": "торкнись для опису · тягни · ← → · ⏹ завершити"
+  },
+  "resultsPanel": {
+    "liked": "{{count}} сподобались",
+    "passed": "{{count}} пропущено",
+    "likedMovies": "Вподобані фільми",
+    "noLikedMovies": "Жодного вподобаного фільму в цій сесії",
+    "swipeAgain": "Свайпати знову",
+    "changeFilters": "Змінити фільтри",
+    "dashboard": "Головна"
+  }
+}

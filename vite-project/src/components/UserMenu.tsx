@@ -1,5 +1,6 @@
-import { FC, useRef, useState, useEffect } from 'react'
+﻿import { FC, useRef, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Avatar } from './ui/Avatar'
 import { cn } from '../lib/utils'
 import { ROUTES } from '../lib/routes'
@@ -12,6 +13,7 @@ interface UserMenuProps {
 }
 
 export const UserMenu: FC<UserMenuProps> = ({ email, userId, onLogout }) => {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [avatarSrc, setAvatarSrc] = useState<string | null>(null)
   const [displayName, setDisplayName] = useState<string>('')
@@ -38,11 +40,11 @@ export const UserMenu: FC<UserMenuProps> = ({ email, userId, onLogout }) => {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-3 focus:outline-none"
+        className="flex items-center gap-3 focus:outline-none cursor-pointer"
       >
         <Avatar email={email} src={avatarSrc} size="sm" />
         <span
-          className="font-[Poppins] text-[14px] text-white hidden sm:block"
+          className="font-poppins text-[14px] text-white hidden sm:block"
           style={{
             maxWidth: 160,
             overflow: 'hidden',
@@ -71,7 +73,7 @@ export const UserMenu: FC<UserMenuProps> = ({ email, userId, onLogout }) => {
 
       {open && (
         <div
-          className="absolute right-0 top-14 w-44 rounded-2xl overflow-hidden font-[Poppins] text-[14px]"
+          className="absolute right-0 top-14 w-44 rounded-2xl overflow-hidden font-poppins text-[14px]"
           style={{
             background: 'rgba(30,20,50,0.95)',
             border: '1px solid rgba(255,255,255,0.12)',
@@ -96,11 +98,11 @@ export const UserMenu: FC<UserMenuProps> = ({ email, userId, onLogout }) => {
               <circle cx="12" cy="8" r="4" />
               <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
             </svg>
-            My Profile
+            {t('userMenu.myProfile')}
           </Link>
           <button
             onClick={onLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 transition-colors cursor-pointer"
             style={{ color: '#ff7c7c' }}
           >
             <svg
@@ -117,7 +119,7 @@ export const UserMenu: FC<UserMenuProps> = ({ email, userId, onLogout }) => {
               <polyline points="16 17 21 12 16 7" />
               <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
-            Log Out
+            {t('userMenu.logOut')}
           </button>
         </div>
       )}

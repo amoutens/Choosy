@@ -1,4 +1,4 @@
-import { FC, ReactNode } from 'react'
+﻿import { FC, ReactNode } from 'react'
 import { GlassCard } from '../ui/GlassCard'
 import { Button } from '../ui/Button'
 
@@ -32,7 +32,7 @@ export const RoomCard: FC<RoomCardProps> = ({
 
     <div className="text-center">
       <h2 className="font-['Abril_Fatface'] text-[26px] text-white leading-none mb-2">{title}</h2>
-      <p className="font-[Poppins] text-[13px]" style={{ color: 'rgba(255,255,255,0.5)' }}>
+      <p className="font-poppins text-[13px]" style={{ color: 'rgba(255,255,255,0.5)' }}>
         {description}
       </p>
     </div>

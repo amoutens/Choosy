@@ -1,4 +1,5 @@
-import { FC } from 'react'
+﻿import { FC } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Movie } from '../../api/movies.types'
 import { MovieRanking } from '../../hooks/useRoomSocket'
 
@@ -8,19 +9,21 @@ interface Props {
 }
 
 export const LiveRecsPanel: FC<Props> = ({ rankings, allMovies }) => {
+  const { t } = useTranslation()
   const movieMap = new Map(allMovies.map((movie) => [movie.imdbID, movie]))
   const top5 = rankings
-    .slice(0, 5)
+    .filter((r) => r.likeCount > 0)
     .map((ranking) => ({ ...ranking, movie: movieMap.get(ranking.imdbID) }))
     .filter((ranking): ranking is typeof ranking & { movie: Movie } => ranking.movie !== undefined)
+    .slice(0, 5)
 
   return (
     <div className="flex flex-col items-center gap-2 w-full max-w-xs">
       <p
-        className="font-[Poppins] text-[11px] uppercase tracking-widest"
+        className="font-poppins text-[11px] uppercase tracking-widest"
         style={{ color: 'rgba(255,255,255,0.3)' }}
       >
-        Group top picks so far
+        {t('liveRecs.groupTopPicks')}
       </p>
       <div className="flex gap-2 justify-center">
         {top5.map((ranking, index) => (
@@ -32,7 +35,7 @@ export const LiveRecsPanel: FC<Props> = ({ rankings, allMovies }) => {
               style={{ width: 48, height: 72 }}
             />
             <div
-              className="absolute top-1 left-1 font-[Poppins] font-bold rounded-md px-1"
+              className="absolute top-1 left-1 font-poppins font-bold rounded-md px-1"
               style={{
                 fontSize: 9,
                 background: 'rgba(0,0,0,0.65)',
