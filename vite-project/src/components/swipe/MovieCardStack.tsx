@@ -111,6 +111,7 @@ export const MovieCardStack: FC<MovieCardStackProps> = ({
         )}
         {top && (
           <MovieCard
+            key={top.imdbID}
             movie={top}
             translateX={translateX}
             rotation={rotation}

@@ -144,12 +144,14 @@ const Room: FC = () => {
         setVotingMovies((prev) => {
           if (prev.length === 0) return prev
           const [top, ...rest] = prev
-          // Re-sort the unseen tail to match the server's canonical ranked order
+          if (newMovies.length === 0) return prev
+          // Protect the nearest 3 unseen movies from re-ordering — only sort the tail
           const serverOrder = new Map(state.movies.map((m, i) => [m.imdbID, i]))
-          const sortedRest = [...rest, ...newMovies].sort(
+          const stableHead = rest.slice(0, 3)
+          const sortedTail = [...rest.slice(3), ...newMovies].sort(
             (a, b) => (serverOrder.get(a.imdbID) ?? 999) - (serverOrder.get(b.imdbID) ?? 999)
           )
-          return [top, ...sortedRest]
+          return [top, ...stableHead, ...sortedTail]
         })
         return
       }
@@ -195,15 +197,6 @@ const Room: FC = () => {
     (state) => applyServerStateRef.current(state),
     (rankings) => {
       setMovieRankings(rankings)
-      setVotingMovies((prev) => {
-        if (prev.length <= 1) return prev
-        const [top, ...rest] = prev
-        const scoreMap = new Map(rankings.map((r) => [r.imdbID, r.score]))
-        return [
-          top,
-          ...rest.sort((a, b) => (scoreMap.get(b.imdbID) ?? 0) - (scoreMap.get(a.imdbID) ?? 0)),
-        ]
-      })
     }
   )
 
@@ -370,7 +363,7 @@ const Room: FC = () => {
                 <p className="font-poppins text-[12px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
                   {t('room.swiped', { count: swipedCount, total: totalCards })}
                 </p>
-                {movieRankings.length > 0 && (
+                {movieRankings.some((r) => r.likeCount > 0) && (
                   <LiveRecsPanel rankings={movieRankings} allMovies={allMovies} />
                 )}
               </>

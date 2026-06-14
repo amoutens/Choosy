@@ -24,7 +24,7 @@ export const PageBackground: FC<PageBackgroundProps> = ({ children, className = 
     </div>
 
     {BG_ICONS.map((icon, i) => (
-      <div key={i} className="absolute pointer-events-none opacity-90" style={icon.style}>
+      <div key={i} className="absolute pointer-events-none opacity-30 z-[1]" style={icon.style}>
         {icon.type === 'reel' ? <FilmIcon /> : <FilmIconSecondary />}
       </div>
     ))}

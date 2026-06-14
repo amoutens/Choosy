@@ -233,6 +233,7 @@ export class RoomsService {
       ranked.map((result) => ({
         imdbID: result.movie.imdbID,
         score: result.score,
+        likeCount: result.likeCount,
       })),
     );
 

@@ -7,6 +7,7 @@ const WS_URL = 'http://localhost:4000'
 export interface MovieRanking {
   imdbID: string
   score: number
+  likeCount: number
 }
 
 export function useRoomSocket(

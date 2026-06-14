@@ -12,9 +12,10 @@ export const LiveRecsPanel: FC<Props> = ({ rankings, allMovies }) => {
   const { t } = useTranslation()
   const movieMap = new Map(allMovies.map((movie) => [movie.imdbID, movie]))
   const top5 = rankings
-    .slice(0, 5)
+    .filter((r) => r.likeCount > 0)
     .map((ranking) => ({ ...ranking, movie: movieMap.get(ranking.imdbID) }))
     .filter((ranking): ranking is typeof ranking & { movie: Movie } => ranking.movie !== undefined)
+    .slice(0, 5)
 
   return (
     <div className="flex flex-col items-center gap-2 w-full max-w-xs">
