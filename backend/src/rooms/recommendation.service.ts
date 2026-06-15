@@ -30,6 +30,14 @@ export class RecommendationService {
     // Genre preference profile per user: genre → weight in [−1, 1]
     const userProfiles = this.buildUserProfiles(votes, participantIds);
 
+    for (const [userId, genreWeights] of userProfiles) {
+      const sorted = [...genreWeights.entries()].sort((a, b) => b[1] - a[1]);
+      const genreStr = sorted
+        .map(([genre, w]) => `${genre}=${w.toFixed(3)}`)
+        .join(', ');
+      console.log(`[GenreWeights] user=${userId}: ${genreStr}`);
+    }
+
     // Content-based score per movie per user
     const contentScores = this.computeContentScores(
       candidateMovies,
